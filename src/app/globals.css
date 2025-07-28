@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 15%;
+    --primary: 220 25% 15%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 220 25% 15%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 56.9%; /* Slightly lighter for better contrast on light gray */
+    --accent: 150 40% 45%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 220 25% 15%;
+    --radius: 0.5rem;
+    /* Chart Colors */
+    --chart-1: 220 25% 15%; /* Deep Navy */
+    --chart-2: 150 40% 45%; /* Calming Green */
+    --chart-3: 210 40% 70%; /* Muted Blue */
+    --chart-4: 30 80% 65%;  /* Soft Orange */
+    --chart-5: 280 40% 75%; /* Soft Purple */
+  }
+
+  .dark {
+    /* Define a dark theme as a fallback or for user preference */
+    --background: 220 25% 10%;
+    --foreground: 210 20% 98%;
+    --card: 220 25% 15%;
+    --card-foreground: 210 20% 98%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 220 25% 15%;
+    --secondary: 217.2 32.6% 22.5%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 217.2 32.6% 22.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 150 40% 55%;
+    --accent-foreground: 220 25% 15%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 22.5%;
+    --input: 217.2 32.6% 22.5%;
+    --ring: 210 20% 98%;
+    /* Chart Colors */
+    --chart-1: 210 20% 98%;
+    --chart-2: 150 40% 55%;
+    --chart-3: 210 40% 70%;
+    --chart-4: 30 80% 65%;
+    --chart-5: 280 40% 75%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
