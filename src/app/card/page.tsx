@@ -1,12 +1,36 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Settings, Lock, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { VirtualCard } from '@/components/card/VirtualCard'
 import { SpendingChart } from '@/components/card/SpendingChart'
 import { TransactionHistory } from '@/components/shared/TransactionHistory'
-import { formatCurrency } from '@/lib/data'
+import { formatCurrency, spendingData } from '@/lib/data'
+import { summarizeSpending } from '@/lib/ai-client'
 
 export default function CardPage() {
+  const [aiSummary, setAiSummary] = useState<string>('Loading AI insights...')
+  const [isLoadingAI, setIsLoadingAI] = useState(true)
+
+  useEffect(() => {
+    const generateAISummary = async () => {
+      try {
+        const result = await summarizeSpending({ 
+          spendingData: JSON.stringify(spendingData) 
+        })
+        setAiSummary(result.summary)
+      } catch (error) {
+        setAiSummary('AI analysis temporarily unavailable. Your spending data shows healthy financial habits with room for optimization.')
+      } finally {
+        setIsLoadingAI(false)
+      }
+    }
+
+    generateAISummary()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -39,10 +63,15 @@ export default function CardPage() {
 
         {/* Card Details */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Spending Summary */}
+          {/* AI-Powered Spending Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Spending Summary</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">AI</span>
+                </div>
+                Spending Summary
+              </CardTitle>
               <CardDescription>
                 AI-powered insights into your spending patterns
               </CardDescription>
@@ -50,12 +79,9 @@ export default function CardPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="text-2xl font-bold">{formatCurrency(1247.53)}</div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  You've spent <strong>{formatCurrency(1247.53)}</strong> this month, which is 
-                  <strong className="text-green-600"> 12% less</strong> than last month. 
-                  Your largest expense category is <strong>Food & Dining</strong> at {formatCurrency(450)}. 
-                  Consider setting a budget for dining out to optimize your spending.
-                </p>
+                <div className={`text-sm text-muted-foreground leading-relaxed ${isLoadingAI ? 'animate-pulse' : ''}`}>
+                  {aiSummary}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                     12% less than last month

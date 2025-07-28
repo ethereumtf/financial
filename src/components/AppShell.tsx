@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ThemeGenerator } from '@/components/ThemeGenerator'
 import { mockUser } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
@@ -144,6 +145,7 @@ export function AppShell({ children }: AppShellProps) {
           {/* Desktop Header with User Menu */}
           <header className="hidden md:flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
             <div className="w-full flex-1" />
+            <ThemeGenerator />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="secondary" size="icon" className="rounded-full">
