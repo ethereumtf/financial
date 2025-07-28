@@ -11,7 +11,6 @@ const nextConfig = {
   
   // Build optimizations
   reactStrictMode: true,
-  swcMinify: true,
   
   // Disable features not supported in static export
   eslint: {
