@@ -82,7 +82,7 @@ export function EtherlinkSwap() {
         
         // If allowance is greater than or equal to the amount we want to swap
         const amountWei = parseTokenAmount(fromAmount || '0', fromToken.decimals);
-        setIsApproved(ethers.BigInt(allowance) >= ethers.BigInt(amountWei));
+        setIsApproved(BigInt(allowance) >= BigInt(amountWei));
       } catch (err) {
         console.error('Error checking approval:', err);
         setError('Failed to check token approval');
@@ -166,7 +166,7 @@ export function EtherlinkSwap() {
     
     // For native tokens, leave some for gas
     const maxAmount = fromToken?.address === ethers.ZeroAddress 
-      ? ethers.formatUnits(ethers.BigInt(balance) * ethers.toBigInt(95) / ethers.toBigInt(100), fromToken?.decimals || 18)
+      ? ethers.formatUnits(BigInt(balance) * BigInt(95) / BigInt(100), fromToken?.decimals || 18)
       : formatTokenAmount(balance, fromToken?.decimals || 18);
     
     setFromAmount(maxAmount);
