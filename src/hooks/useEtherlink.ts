@@ -1,12 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ethers } from 'ethers';
+import { ethers, BrowserProvider, JsonRpcSigner } from 'ethers';
 import { EtherlinkAdapter } from '../lib/blockchain/etherlink/adapter';
-import { Token, SwapParams, QuoteResponse } from '../lib/blockchain/etherlink/types';
+import { Token, SwapParams, QuoteResponse, TransactionRequest } from '../lib/blockchain/etherlink/types';
 
-export const useEtherlink = (provider?: any) => {
+interface UseEtherlinkReturn {
+  // Connection
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  isConnected: boolean;
+  isConnecting: boolean;
+  account: string | null;
+  chainId: bigint | null;
+  error: Error | null;
+  
+  // Token operations
+  getTokenBalance: (tokenAddress: string, address: string) => Promise<string>;
+  getTokenAllowance: (tokenAddress: string, spender: string, owner?: string) => Promise<string>;
+  approveToken: (tokenAddress: string, spender: string, amount?: string) => Promise<TransactionRequest>;
+  
+  // Swap operations
+  getQuote: (params: SwapParams) => Promise<QuoteResponse>;
+  swap: (params: SwapParams) => Promise<TransactionRequest>;
+  quote: QuoteResponse | null;
+  isLoadingQuote: boolean;
+  
+  // Transaction operations
+  sendTransaction: (transaction: TransactionRequest) => Promise<TransactionRequest>;
+  getTransaction: (txHash: string) => Promise<ethers.TransactionResponse | null>;
+  getTransactionReceipt: (txHash: string) => Promise<ethers.TransactionReceipt | null>;
+  
+  // Adapter
+  adapter: EtherlinkAdapter | null;
+}
+
+export const useEtherlink = (provider?: BrowserProvider): UseEtherlinkReturn => {
   const [adapter, setAdapter] = useState<EtherlinkAdapter | null>(null);
   const [account, setAccount] = useState<string | null>(null);
-  const [chainId, setChainId] = useState<number | null>(null);
+  const [chainId, setChainId] = useState<bigint | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
@@ -19,10 +49,9 @@ export const useEtherlink = (provider?: any) => {
         network: 'testnet',
         rpcUrl: 'https://node.ghostnet.etherlink.com',
         chainId: 128123,
+        explorerUrl: 'https://testnet-explorer.etherlink.com'
       });
       
-      const signer = provider.getSigner();
-      etherlinkAdapter.setSigner(signer);
       setAdapter(etherlinkAdapter);
       
       // Set up event listeners
@@ -30,63 +59,59 @@ export const useEtherlink = (provider?: any) => {
         setAccount(accounts[0] || null);
       };
       
-      const handleChainChanged = (newChainId: number) => {
-        setChainId(Number(newChainId));
+      const handleChainChanged = (newChainId: string) => {
+        // Convert hex chainId to number
+        setChainId(BigInt(parseInt(newChainId, 16)));
       };
       
-      // Get initial account and chain ID
-      signer.getAddress()
-        .then((address: string) => setAccount(address))
-        .catch(console.error);
-      
-      provider.getNetwork()
-        .then((network: any) => setChainId(Number(network.chainId)))
-        .catch(console.error);
-      
-      // Set up event listeners
-      if (provider.on) {
-        provider.on('accountsChanged', handleAccountsChanged);
-        provider.on('chainChanged', handleChainChanged);
+      // Check if we have a provider with event listeners (like MetaMask)
+      if (provider && typeof window !== 'undefined' && (window as any).ethereum) {
+        (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
+        (window as any).ethereum.on('chainChanged', handleChainChanged);
+        
+        // Initial account check
+        (window as any).ethereum.request({ method: 'eth_accounts' })
+          .then((accounts: string[]) => {
+            if (accounts.length > 0) {
+              setAccount(accounts[0]);
+            }
+          });
+          
+        // Initial chain ID check
+        (window as any).ethereum.request({ method: 'eth_chainId' })
+          .then((hexChainId: string) => {
+            setChainId(BigInt(parseInt(hexChainId, 16)));
+          });
       }
       
-      // Cleanup
       return () => {
-        if (provider.removeListener) {
-          provider.removeListener('accountsChanged', handleAccountsChanged);
-          provider.removeListener('chainChanged', handleChainChanged);
+        // Clean up event listeners
+        if (typeof window !== 'undefined' && (window as any).ethereum) {
+          (window as any).ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          (window as any).ethereum.removeListener('chainChanged', handleChainChanged);
         }
       };
     }
   }, [provider]);
 
-  // Connect wallet
+  // Connect to wallet
   const connect = useCallback(async () => {
-    if (!adapter || !window.ethereum) return;
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
     
     try {
       setIsConnecting(true);
       setError(null);
       
-      // Request account access if needed
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      // Get the signer
-      const signer = new ethers.providers.Web3Provider(window.ethereum).getSigner();
-      adapter.setSigner(signer);
-      
-      // Update account and chain ID
-      const address = await signer.getAddress();
-      const network = await signer.provider?.getNetwork();
-      
+      const { address, chainId } = await adapter.connect();
       setAccount(address);
-      if (network) {
-        setChainId(Number(network.chainId));
-      }
+      setChainId(chainId);
       
-      return address;
+      return { address, chainId };
     } catch (err) {
-      console.error('Failed to connect wallet:', err);
-      setError(err instanceof Error ? err : new Error('Failed to connect wallet'));
+      console.error('Error connecting to wallet:', err);
+      setError(err instanceof Error ? err : new Error('Failed to connect to wallet'));
       throw err;
     } finally {
       setIsConnecting(false);
@@ -101,94 +126,164 @@ export const useEtherlink = (provider?: any) => {
   }, []);
 
   // Get token balance
-  const getTokenBalance = useCallback(async (tokenAddress: string, accountAddress?: string) => {
-    if (!adapter) throw new Error('Adapter not initialized');
-    return adapter.getTokenBalance(tokenAddress, accountAddress);
+  const getTokenBalance = useCallback(async (tokenAddress: string, address: string): Promise<string> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
+    
+    try {
+      return await adapter.getTokenBalance(tokenAddress, address);
+    } catch (err) {
+      console.error('Error getting token balance:', err);
+      throw err;
+    }
   }, [adapter]);
 
   // Get token allowance
-  const getTokenAllowance = useCallback(async (tokenAddress: string, spender: string, owner?: string) => {
-    if (!adapter) throw new Error('Adapter not initialized');
-    return adapter.getTokenAllowance(tokenAddress, spender, owner);
-  }, [adapter]);
-
-  // Approve token
-  const approveToken = useCallback(async (tokenAddress: string, spender: string, amount?: string) => {
-    if (!adapter) throw new Error('Adapter not initialized');
-    if (!account) throw new Error('Not connected');
+  const getTokenAllowance = useCallback(async (
+    tokenAddress: string, 
+    spender: string, 
+    owner?: string
+  ): Promise<string> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
     
     try {
-      setError(null);
-      return await adapter.approveToken(tokenAddress, spender, amount);
+      return await adapter.getTokenAllowance(tokenAddress, spender, owner);
     } catch (err) {
-      console.error('Token approval failed:', err);
-      setError(err instanceof Error ? err : new Error('Token approval failed'));
+      console.error('Error getting token allowance:', err);
       throw err;
     }
-  }, [adapter, account]);
+  }, [adapter]);
+
+  // Approve token spending
+  const approveToken = useCallback(async (
+    tokenAddress: string, 
+    spender: string, 
+    amount: string = ethers.MaxUint256.toString()
+  ): Promise<TransactionRequest> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
+    
+    try {
+      return await adapter.approveToken(tokenAddress, spender, amount);
+    } catch (err) {
+      console.error('Error approving token:', err);
+      throw err;
+    }
+  }, [adapter]);
 
   // Get swap quote
-  const getQuote = useCallback(async (params: Omit<SwapParams, 'fromAddress'>) => {
-    if (!adapter || !account) return null;
+  const getQuote = useCallback(async (params: SwapParams): Promise<QuoteResponse> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
     
     try {
       setIsLoadingQuote(true);
-      setError(null);
-      
-      const quoteParams: SwapParams = {
-        ...params,
-        fromAddress: account,
-      };
-      
-      const quote = await adapter.getQuote(quoteParams);
+      const quote = await adapter.getQuote(params);
       setQuote(quote);
       return quote;
     } catch (err) {
-      console.error('Failed to get quote:', err);
-      setError(err instanceof Error ? err : new Error('Failed to get quote'));
-      setQuote(null);
+      console.error('Error getting quote:', err);
       throw err;
     } finally {
       setIsLoadingQuote(false);
     }
-  }, [adapter, account]);
+  }, [adapter]);
 
   // Execute swap
-  const executeSwap = useCallback(async (params: Omit<SwapParams, 'fromAddress'>) => {
-    if (!adapter || !account) throw new Error('Not connected');
+  const swap = useCallback(async (params: SwapParams): Promise<TransactionRequest> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
     
     try {
-      setError(null);
-      
-      const swapParams: SwapParams = {
-        ...params,
-        fromAddress: account,
-      };
-      
-      return await adapter.executeSwap(swapParams);
+      return await adapter.swap(params);
     } catch (err) {
-      console.error('Swap failed:', err);
-      setError(err instanceof Error ? err : new Error('Swap failed'));
+      console.error('Error executing swap:', err);
       throw err;
     }
-  }, [adapter, account]);
+  }, [adapter]);
+
+  // Send transaction
+  const sendTransaction = useCallback(async (
+    transaction: TransactionRequest
+  ): Promise<TransactionRequest> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
+    
+    try {
+      return await adapter.sendTransaction(transaction);
+    } catch (err) {
+      console.error('Error sending transaction:', err);
+      throw err;
+    }
+  }, [adapter]);
+
+  // Get transaction by hash
+  const getTransaction = useCallback(async (
+    txHash: string
+  ): Promise<ethers.TransactionResponse | null> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
+    
+    try {
+      return await adapter.getTransaction(txHash);
+    } catch (err) {
+      console.error('Error getting transaction:', err);
+      throw err;
+    }
+  }, [adapter]);
+
+  // Get transaction receipt
+  const getTransactionReceipt = useCallback(async (
+    txHash: string
+  ): Promise<ethers.TransactionReceipt | null> => {
+    if (!adapter) {
+      throw new Error('Etherlink adapter not initialized');
+    }
+    
+    try {
+      return await adapter.getTransactionReceipt(txHash);
+    } catch (err) {
+      console.error('Error getting transaction receipt:', err);
+      throw err;
+    }
+  }, [adapter]);
 
   return {
-    adapter,
-    account,
-    chainId,
-    isConnected: !!account,
-    isConnecting,
-    error,
+    // Connection
     connect,
     disconnect,
+    isConnected: !!account,
+    isConnecting,
+    account,
+    chainId,
+    error,
+    
+    // Token operations
     getTokenBalance,
     getTokenAllowance,
     approveToken,
+    
+    // Swap operations
     getQuote,
+    swap,
     quote,
     isLoadingQuote,
-    executeSwap,
+    
+    // Transaction operations
+    sendTransaction,
+    getTransaction,
+    getTransactionReceipt,
+    
+    // Adapter
+    adapter,
   };
 };
 

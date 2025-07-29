@@ -10,7 +10,7 @@ import { formatTokenAmount, parseTokenAmount } from '../../lib/blockchain/etherl
 // Sample token list - in a real app, fetch this from an API
 const DEFAULT_TOKENS: Token[] = [
   {
-    address: ethers.constants.AddressZero, // Native token
+    address: ethers.ZeroAddress, // Native token
     symbol: 'XTEZ',
     decimals: 18,
   },
@@ -29,256 +29,326 @@ const DEFAULT_TOKENS: Token[] = [
 export function EtherlinkSwap() {
   const [fromToken, setFromToken] = useState<Token>(DEFAULT_TOKENS[0]);
   const [toToken, setToToken] = useState<Token>(DEFAULT_TOKENS[1]);
-  const [amount, setAmount] = useState('');
+  const [fromAmount, setFromAmount] = useState('');
+  const [toAmount, setToAmount] = useState('');
   const [slippage, setSlippage] = useState('0.5');
   const [isSwapping, setIsSwapping] = useState(false);
+  const [error, setError] = useState('');
+  const [txHash, setTxHash] = useState('');
+  const [isApproving, setIsApproving] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
+  const [balance, setBalance] = useState('0');
   
-  const {
-    account,
-    isConnected,
-    isConnecting,
-    connect,
-    quote,
-    isLoadingQuote,
-    getQuote,
-    executeSwap,
-    approveToken,
+  const { 
+    connect, 
+    account, 
+    chainId, 
+    isConnected, 
+    getTokenBalance, 
     getTokenAllowance,
-    error,
+    approveToken,
+    swap
   } = useEtherlink();
 
-  // Fetch quote when input changes
+  // Fetch balance when account or token changes
   useEffect(() => {
-    const fetchQuote = async () => {
-      if (!isConnected || !amount || parseFloat(amount) <= 0) return;
+    const fetchBalance = async () => {
+      if (!account || !fromToken) return;
       
       try {
-        await getQuote({
-          fromToken: fromToken.address,
-          toToken: toToken.address,
-          amount: parseTokenAmount(amount, fromToken.decimals),
-          slippage: parseFloat(slippage) || 0.5,
-        });
+        const bal = await getTokenBalance(fromToken.address, account);
+        setBalance(bal);
       } catch (err) {
-        console.error('Error fetching quote:', err);
+        console.error('Error fetching balance:', err);
+        setError('Failed to fetch balance');
       }
     };
 
-    const timer = setTimeout(fetchQuote, 500);
-    return () => clearTimeout(timer);
-  }, [amount, fromToken, toToken, slippage, isConnected, getQuote]);
+    fetchBalance();
+  }, [account, fromToken, getTokenBalance]);
 
-  // Handle token swap
-  const handleSwap = async () => {
-    if (!isConnected || !amount || !quote) return;
+  // Check token approval status
+  useEffect(() => {
+    const checkApproval = async () => {
+      if (!account || !fromToken || fromToken.address === ethers.ZeroAddress) {
+        setIsApproved(true);
+        return;
+      }
+
+      try {
+        // In a real app, you'd check against the actual router address
+        const routerAddress = '0x1111111254fb6c44bAC0beD2854e76F90643097d'; // 1inch router
+        const allowance = await getTokenAllowance(fromToken.address, routerAddress, account);
+        
+        // If allowance is greater than or equal to the amount we want to swap
+        const amountWei = parseTokenAmount(fromAmount || '0', fromToken.decimals);
+        setIsApproved(ethers.BigInt(allowance) >= ethers.BigInt(amountWei));
+      } catch (err) {
+        console.error('Error checking approval:', err);
+        setError('Failed to check token approval');
+      }
+    };
+
+    checkApproval();
+  }, [account, fromToken, fromAmount, getTokenAllowance]);
+
+  const handleConnect = useCallback(async () => {
+    try {
+      setError('');
+      await connect();
+    } catch (err) {
+      console.error('Error connecting wallet:', err);
+      setError('Failed to connect wallet');
+    }
+  }, [connect]);
+
+  const handleApprove = useCallback(async () => {
+    if (!account || !fromToken) return;
+    
+    try {
+      setIsApproving(true);
+      setError('');
+      
+      // In a real app, you'd use the actual router address
+      const routerAddress = '0x1111111254fb6c44bAC0beD2854e76F90643097d'; // 1inch router
+      const tx = await approveToken(fromToken.address, routerAddress);
+      await tx.wait();
+      
+      setIsApproved(true);
+    } catch (err) {
+      console.error('Error approving token:', err);
+      setError('Failed to approve token');
+    } finally {
+      setIsApproving(false);
+    }
+  }, [account, fromToken, approveToken]);
+
+  const handleSwap = useCallback(async () => {
+    if (!account || !fromToken || !toToken || !fromAmount) return;
     
     try {
       setIsSwapping(true);
+      setError('');
+      setTxHash('');
       
-      // Check if approval is needed (for non-native tokens)
-      if (fromToken.address !== ethers.constants.AddressZero) {
-        const spender = '0x1111111254EEB25477B68fb85Ed929f73A960582'; // 1inch router
-        const allowance = await getTokenAllowance(fromToken.address, spender);
-        const amountInWei = parseTokenAmount(amount, fromToken.decimals);
-        
-        if (BigInt(allowance) < BigInt(amountInWei)) {
-          await approveToken(fromToken.address, spender);
-        }
-      }
+      // In a real app, you'd calculate the minimum amount out based on slippage
+      const amountInWei = parseTokenAmount(fromAmount, fromToken.decimals);
+      const minAmountOut = '0'; // Calculate based on price impact and slippage
       
-      // Execute the swap
-      const tx = await executeSwap({
+      const tx = await swap({
         fromToken: fromToken.address,
         toToken: toToken.address,
-        amount: parseTokenAmount(amount, fromToken.decimals),
+        amount: amountInWei,
+        fromAddress: account,
         slippage: parseFloat(slippage) || 0.5,
+        recipient: account,
       });
       
-      console.log('Swap transaction sent:', tx.hash);
-      const receipt = await tx.wait();
-      console.log('Swap completed:', receipt.transactionHash);
+      setTxHash(tx.hash);
+      
+      // Wait for the transaction to be mined
+      await tx.wait();
       
       // Reset form
-      setAmount('');
+      setFromAmount('');
+      setToAmount('');
       
     } catch (err) {
-      console.error('Swap failed:', err);
+      console.error('Error swapping tokens:', err);
+      setError('Failed to swap tokens');
     } finally {
       setIsSwapping(false);
     }
-  };
+  }, [account, fromToken, toToken, fromAmount, slippage, swap]);
 
-  // Switch tokens
-  const switchTokens = () => {
-    setFromToken(toToken);
-    setToToken(fromToken);
-    if (quote) {
-      setAmount(formatTokenAmount(quote.amountOut, toToken.decimals));
-    }
-  };
+  const handleMaxClick = useCallback(() => {
+    if (!balance) return;
+    
+    // For native tokens, leave some for gas
+    const maxAmount = fromToken?.address === ethers.ZeroAddress 
+      ? ethers.formatUnits(ethers.BigInt(balance) * ethers.toBigInt(95) / ethers.toBigInt(100), fromToken?.decimals || 18)
+      : formatTokenAmount(balance, fromToken?.decimals || 18);
+    
+    setFromAmount(maxAmount);
+  }, [balance, fromToken]);
+
+  // Format balance for display
+  const formattedBalance = useCallback(() => {
+    if (!balance) return '0';
+    return formatTokenAmount(balance, fromToken?.decimals || 18);
+  }, [balance, fromToken]);
+
+  if (!isConnected) {
+    return (
+      <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md">
+        <h2 className="text-xl font-bold mb-4">Connect Wallet</h2>
+        <p className="mb-4">Connect your wallet to start swapping tokens</p>
+        <Button onClick={handleConnect} className="w-full">
+          Connect Wallet
+        </Button>
+        {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Etherlink Swap</h2>
+    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Swap Tokens</h2>
       
-      {!isConnected ? (
-        <Button 
-          onClick={connect} 
-          disabled={isConnecting}
-          className="w-full"
-        >
-          {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-        </Button>
-      ) : (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">From</label>
-            <div className="flex space-x-2">
-              <Input
-                type="number"
-                placeholder="0.0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="flex-1"
-                disabled={!isConnected}
-              />
-              <Select
-                value={fromToken.address}
-                onValueChange={(value) => {
-                  const token = DEFAULT_TOKENS.find(t => t.address === value);
-                  if (token) setFromToken(token);
-                }}
-                disabled={!isConnected}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select token" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEFAULT_TOKENS.map((token) => (
-                    <SelectItem 
-                      key={token.address} 
-                      value={token.address}
-                      disabled={token.address === toToken.address}
-                    >
-                      {token.symbol}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="text-xs text-right text-gray-500">
-              Balance: {isConnected ? 'Loading...' : '-'}
-            </div>
-          </div>
+      {/* From Token */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <label className="text-sm font-medium">From</label>
+          <span className="text-xs text-gray-500">
+            Balance: {formattedBalance()} {fromToken?.symbol}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            type="number"
+            value={fromAmount}
+            onChange={(e) => setFromAmount(e.target.value)}
+            placeholder="0.0"
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            variant="outline"
+            size="sm"
+            onClick={handleMaxClick}
+            className="whitespace-nowrap"
+          >
+            MAX
+          </Button>
+          <Select
+            value={fromToken?.address}
+            onValueChange={(value) => {
+              const token = DEFAULT_TOKENS.find(t => t.address === value);
+              if (token) setFromToken(token);
+            }}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select token" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEFAULT_TOKENS.map((token) => (
+                <SelectItem key={token.address} value={token.address}>
+                  {token.symbol}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-          <div className="flex justify-center">
-            <button 
-              className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-              onClick={switchTokens}
-              disabled={!isConnected}
-            >
-              ↓↑
-            </button>
-          </div>
+      {/* To Token */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <label className="text-sm font-medium">To</label>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            value={toAmount}
+            readOnly
+            placeholder="0.0"
+            className="flex-1"
+          />
+          <Select
+            value={toToken?.address}
+            onValueChange={(value) => {
+              const token = DEFAULT_TOKENS.find(t => t.address === value);
+              if (token) setToToken(token);
+            }}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select token" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEFAULT_TOKENS
+                .filter(token => token.address !== fromToken?.address)
+                .map((token) => (
+                  <SelectItem key={token.address} value={token.address}>
+                    {token.symbol}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">To</label>
-            <div className="flex space-x-2">
-              <Input
-                type="text"
-                placeholder="0.0"
-                value={quote ? formatTokenAmount(quote.amountOut, toToken.decimals) : ''}
-                readOnly
-                className="flex-1"
-              />
-              <Select
-                value={toToken.address}
-                onValueChange={(value) => {
-                  const token = DEFAULT_TOKENS.find(t => t.address === value);
-                  if (token) setToToken(token);
-                }}
-                disabled={!isConnected}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select token" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEFAULT_TOKENS.map((token) => (
-                    <SelectItem 
-                      key={token.address} 
-                      value={token.address}
-                      disabled={token.address === fromToken.address}
-                    >
-                      {token.symbol}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>Slippage Tolerance</span>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="number"
-                  value={slippage}
-                  onChange={(e) => setSlippage(e.target.value)}
-                  className="w-20 h-8 text-right"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                />
-                <span>%</span>
-              </div>
-            </div>
-
-            {quote && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Price Impact</span>
-                  <span>{quote.priceImpact}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Minimum Received</span>
-                  <span>
-                    {formatTokenAmount(quote.minAmountOut, toToken.decimals)} {toToken.symbol}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Estimated Gas</span>
-                  <span>{ethers.utils.formatUnits(quote.estimatedGas, 'gwei')} GWEI</span>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">
-                {error.message}
-              </div>
-            )}
-
-            <Button
-              className="w-full mt-6"
-              onClick={handleSwap}
-              disabled={!isConnected || !amount || !quote || isSwapping || isLoadingQuote}
-            >
-              {isSwapping 
-                ? 'Swapping...' 
-                : isLoadingQuote 
-                  ? 'Fetching quote...' 
-                  : 'Swap'}
-            </Button>
-
-            {isConnected && (
-              <div className="mt-4 text-center text-sm text-gray-500">
-                Connected: {`${account.substring(0, 6)}...${account.substring(38)}`}
-              </div>
-            )}
+      {/* Slippage Tolerence */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1">Slippage Tolerance</label>
+        <div className="flex gap-2">
+          <Button 
+            type="button" 
+            variant={slippage === '0.5' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSlippage('0.5')}
+          >
+            0.5%
+          </Button>
+          <Button 
+            type="button" 
+            variant={slippage === '1' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSlippage('1')}
+          >
+            1%
+          </Button>
+          <div className="relative flex-1">
+            <Input
+              type="number"
+              value={slippage}
+              onChange={(e) => setSlippage(e.target.value)}
+              className="pl-12"
+            />
+            <span className="absolute left-3 top-2 text-sm text-gray-500">%</span>
           </div>
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      {!isApproved && fromToken?.address !== ethers.ZeroAddress ? (
+        <Button 
+          onClick={handleApprove}
+          disabled={isApproving}
+          className="w-full"
+        >
+          {isApproving ? 'Approving...' : `Approve ${fromToken?.symbol}`}
+        </Button>
+      ) : (
+        <Button 
+          onClick={handleSwap}
+          disabled={isSwapping || !fromAmount || parseFloat(fromAmount) <= 0}
+          className="w-full"
+        >
+          {isSwapping ? 'Swapping...' : 'Swap'}
+        </Button>
       )}
+
+      {/* Status */}
+      {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+      {txHash && (
+        <div className="mt-2 text-sm text-green-600">
+          Transaction sent!{' '}
+          <a 
+            href={`https://testnet.etherlink.com/tx/${txHash}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline"
+          >
+            View on Etherscan
+          </a>
+        </div>
+      )}
+
+      {/* Network Info */}
+      <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+        <p>Connected: {account}</p>
+        <p>Network ID: {chainId}</p>
+      </div>
     </div>
   );
 }
