@@ -32,6 +32,7 @@ const navigationItems = [
     name: 'Cards',
     icon: CreditCard,
     subItems: [
+      { name: 'Overview', href: '/cards', icon: CreditCard },
       { name: 'Physical Card', href: '/cards/physical', icon: CreditCard },
       { name: 'Virtual Cards', href: '/cards/virtual', icon: CreditCard },
       { name: 'Rewards', href: '/cards/rewards', icon: TrendingUp },
@@ -44,14 +45,14 @@ const navigationItems = [
     subItems: [
       { name: 'Swap', href: '/swap', icon: ArrowLeftRight },
       { name: 'Bridge', href: '/bridge', icon: Zap },
-      { name: 'Rates & Market', href: '/exchange/rates', icon: BarChart3 }
+      { name: 'Rates & Market', href: '/exchange', icon: BarChart3 }
     ]
   },
   {
     name: 'Invest',
     icon: TrendingUp,
     subItems: [
-      { name: 'Yield Products', href: '/invest/yield', icon: TrendingUp },
+      { name: 'Portfolio Overview', href: '/invest', icon: TrendingUp },
       { name: 'Tokenized Assets', href: '/invest/assets', icon: BarChart3 },
       { name: 'Auto-Invest', href: '/invest/auto', icon: Zap },
       { name: 'Portfolio Analytics', href: '/invest/analytics', icon: BarChart3 }
@@ -182,7 +183,7 @@ export function AppShell({ children }: AppShellProps) {
             <div className="flex-1">
               <nav className="grid gap-2 px-2 py-4">
                 {navigationItems.map((item) => (
-                  <NavLink key={item.href} item={item} />
+                  <NavLink key={item.href || item.name} item={item} />
                 ))}
               </nav>
             </div>
@@ -208,7 +209,7 @@ export function AppShell({ children }: AppShellProps) {
                 </div>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navigationItems.map((item) => (
-                    <NavLink key={item.href} item={item} mobile />
+                    <NavLink key={item.href || item.name} item={item} mobile />
                   ))}
                 </nav>
               </SheetContent>
