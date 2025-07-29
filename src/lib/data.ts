@@ -1,6 +1,6 @@
 // Stablecoin-focused data models for USD Financial
 
-export type StablecoinSymbol = 'USDC' | 'USDT' | 'DAI' | 'FRAX' | 'TUSD' | 'BUSD';
+export type StablecoinSymbol = 'USDC' | 'USDT';
 export type ChainId = 1 | 137 | 42161 | 10 | 56; // Ethereum, Polygon, Arbitrum, Optimism, BSC
 
 export interface StablecoinBalance {
@@ -65,7 +65,7 @@ export interface CrossChainBridge {
   isActive: boolean;
 }
 
-// Stablecoin portfolio data
+// Stablecoin portfolio data - USDC and USDT only
 export const stablecoinPortfolio: StablecoinBalance[] = [
   {
     symbol: 'USDC',
@@ -84,23 +84,6 @@ export const stablecoinPortfolio: StablecoinBalance[] = [
     apy: 3.8,
     isYieldBearing: true,
     contractAddress: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
-  },
-  {
-    symbol: 'DAI',
-    amount: 8750.50,
-    chainId: 1,
-    protocol: 'Yearn',
-    apy: 5.1,
-    isYieldBearing: true,
-    contractAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
-  },
-  {
-    symbol: 'FRAX',
-    amount: 3200.00,
-    chainId: 42161,
-    apy: 6.8,
-    isYieldBearing: true,
-    contractAddress: '0x17FC002b466eEc40DaE837Fc4bE5c67993ddBd6F'
   }
 ];
 
@@ -131,12 +114,12 @@ export const mockStablecoinTransactions: StablecoinTransaction[] = [
   },
   {
     id: '3',
-    description: 'DAI → USDC Swap',
+    description: 'USDC → USDC Swap',
     amount: -500.00,
     date: '2024-01-14',
     type: 'swap',
     status: 'completed',
-    stablecoin: 'DAI',
+    stablecoin: 'USDC',
     chainId: 1,
     txHash: '0x3456...7890'
   },
@@ -166,24 +149,24 @@ export const mockStablecoinTransactions: StablecoinTransaction[] = [
   },
   {
     id: '6',
-    description: 'FRAX Yield Earned - Convex',
+    description: 'USDT Yield Earned - Convex',
     amount: 28.75,
     date: '2024-01-13',
     type: 'yield',
     status: 'completed',
-    stablecoin: 'FRAX',
+    stablecoin: 'USDT',
     chainId: 42161,
     protocol: 'Convex',
     txHash: '0x6789...0123'
   },
   {
     id: '7',
-    description: 'DAI Deposit to Yearn Vault',
+    description: 'USDC Deposit to Yearn Vault',
     amount: 3000.00,
     date: '2024-01-12',
     type: 'deposit',
     status: 'completed',
-    stablecoin: 'DAI',
+    stablecoin: 'USDC',
     chainId: 1,
     protocol: 'Yearn',
     txHash: '0x7890...1234'
@@ -255,7 +238,7 @@ export const yieldPositions: YieldPosition[] = [
   {
     id: '3',
     protocol: 'Yearn',
-    stablecoin: 'DAI',
+    stablecoin: 'USDC',
     depositAmount: 8500.00,
     currentValue: 8750.50,
     apy: 5.1,
@@ -267,7 +250,7 @@ export const yieldPositions: YieldPosition[] = [
   {
     id: '4',
     protocol: 'Convex',
-    stablecoin: 'FRAX',
+    stablecoin: 'USDT',
     depositAmount: 3000.00,
     currentValue: 3200.00,
     apy: 6.8,
@@ -288,7 +271,7 @@ export const protocolsData: ProtocolInfo[] = [
     tvl: 8500000000,
     risk: 'Low',
     description: 'Leading decentralized lending protocol with battle-tested security',
-    supportedStablecoins: ['USDC', 'USDT', 'DAI'],
+    supportedStablecoins: ['USDC', 'USDT', 'USDC'],
     chainIds: [1, 137, 42161],
     logoUrl: '/logos/aave.svg'
   },
@@ -300,7 +283,7 @@ export const protocolsData: ProtocolInfo[] = [
     tvl: 2800000000,
     risk: 'Low',
     description: 'Autonomous interest rate protocol for crypto assets',
-    supportedStablecoins: ['USDC', 'USDT', 'DAI'],
+    supportedStablecoins: ['USDC', 'USDT', 'USDC'],
     chainIds: [1, 137],
     logoUrl: '/logos/compound.svg'
   },
@@ -312,7 +295,7 @@ export const protocolsData: ProtocolInfo[] = [
     tvl: 1200000000,
     risk: 'Medium',
     description: 'Automated yield farming strategies for maximum returns',
-    supportedStablecoins: ['USDC', 'DAI', 'USDT'],
+    supportedStablecoins: ['USDC', 'USDC', 'USDT'],
     chainIds: [1, 42161],
     logoUrl: '/logos/yearn.svg'
   },
@@ -324,7 +307,7 @@ export const protocolsData: ProtocolInfo[] = [
     tvl: 3200000000,
     risk: 'Medium',
     description: 'Boosted Curve yields with simplified staking',
-    supportedStablecoins: ['USDC', 'DAI', 'FRAX'],
+    supportedStablecoins: ['USDC', 'USDC', 'USDT'],
     chainIds: [1, 42161],
     logoUrl: '/logos/convex.svg'
   },
@@ -336,7 +319,7 @@ export const protocolsData: ProtocolInfo[] = [
     tvl: 4100000000,
     risk: 'Low',
     description: 'Efficient stablecoin trading with minimal slippage',
-    supportedStablecoins: ['USDC', 'USDT', 'DAI', 'FRAX'],
+    supportedStablecoins: ['USDC', 'USDT', 'USDC', 'USDT'],
     chainIds: [1, 137, 42161],
     logoUrl: '/logos/curve.svg'
   }
@@ -371,22 +354,6 @@ export const stablecoinChartConfig = {
   'USDT': {
     label: 'USDT',
     color: 'hsl(142, 70%, 45%)', // Green
-  },
-  'DAI': {
-    label: 'DAI',
-    color: 'hsl(45, 85%, 55%)', // Gold
-  },
-  'FRAX': {
-    label: 'FRAX',
-    color: 'hsl(270, 60%, 60%)', // Purple
-  },
-  'TUSD': {
-    label: 'TUSD',
-    color: 'hsl(200, 70%, 55%)', // Light Blue
-  },
-  'BUSD': {
-    label: 'BUSD',
-    color: 'hsl(45, 100%, 50%)', // Yellow
   }
 };
 
@@ -414,10 +381,10 @@ export const bridgeOptions: CrossChainBridge[] = [
   },
   {
     id: 'dai-eth-optimism',
-    name: 'DAI: Ethereum → Optimism',
+    name: 'USDC: Ethereum → Optimism',
     fromChain: 1,
     toChain: 10,
-    stablecoin: 'DAI',
+    stablecoin: 'USDC',
     estimatedTime: '1-3 minutes',
     fees: 1.20,
     isActive: true
@@ -443,11 +410,7 @@ export function formatDate(dateString: string): string {
 export function getStablecoinIcon(symbol: StablecoinSymbol): string {
   const iconMap: Record<StablecoinSymbol, string> = {
     'USDC': '🔵', // Blue circle for USDC
-    'USDT': '🟢', // Green circle for USDT  
-    'DAI': '🟡', // Yellow circle for DAI
-    'FRAX': '🟣', // Purple circle for FRAX
-    'TUSD': '🔷', // Blue diamond for TUSD
-    'BUSD': '🟨'  // Yellow square for BUSD
+    'USDT': '🟢'  // Green circle for USDT  
   };
   return iconMap[symbol] || '💰';
 }

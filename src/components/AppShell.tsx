@@ -88,10 +88,7 @@ export function AppShell({ children }: AppShellProps) {
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">$</span>
                 </div>
-                <div>
-                  <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
-                  <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin Financial</div>
-                </div>
+                <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
               </Link>
             </div>
             <div className="flex-1">
@@ -119,10 +116,7 @@ export function AppShell({ children }: AppShellProps) {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
                     <span className="text-white font-bold text-sm">$</span>
                   </div>
-                  <div>
-                    <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
-                    <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin Financial</div>
-                  </div>
+                  <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
                 </div>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navigationItems.map((item) => (
@@ -136,10 +130,7 @@ export function AppShell({ children }: AppShellProps) {
                 <div className="h-6 w-6 rounded bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
                   <span className="text-white font-bold text-xs">$</span>
                 </div>
-                <div>
-                  <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
-                  <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin</div>
-                </div>
+                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
               </Link>
             </div>
             <DropdownMenu>

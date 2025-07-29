@@ -27,11 +27,7 @@ export default function SwapPage() {
 
   const stablecoinPairs: StablecoinPair[] = [
     { from: 'USDC', to: 'USDT', rate: 0.9998, change: '+0.02%', trend: 'up', liquidity: 50000000, fee: 0.01 },
-    { from: 'USDC', to: 'DAI', rate: 0.9995, change: '-0.01%', trend: 'down', liquidity: 25000000, fee: 0.01 },
-    { from: 'USDT', to: 'DAI', rate: 1.0003, change: '+0.03%', trend: 'up', liquidity: 15000000, fee: 0.01 },
-    { from: 'DAI', to: 'FRAX', rate: 1.0001, change: '+0.01%', trend: 'up', liquidity: 8000000, fee: 0.02 },
-    { from: 'FRAX', to: 'USDC', rate: 0.9999, change: '-0.01%', trend: 'down', liquidity: 12000000, fee: 0.02 },
-    { from: 'USDT', to: 'TUSD', rate: 1.0002, change: '+0.02%', trend: 'up', liquidity: 5000000, fee: 0.02 },
+    { from: 'USDT', to: 'USDC', rate: 1.0002, change: '-0.01%', trend: 'down', liquidity: 48000000, fee: 0.01 }
   ]
 
   const recentSwaps = mockStablecoinTransactions
@@ -112,9 +108,6 @@ export default function SwapPage() {
                       <SelectContent>
                         <SelectItem value="USDC">USDC</SelectItem>
                         <SelectItem value="USDT">USDT</SelectItem>
-                        <SelectItem value="DAI">DAI</SelectItem>
-                        <SelectItem value="FRAX">FRAX</SelectItem>
-                        <SelectItem value="TUSD">TUSD</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -157,9 +150,6 @@ export default function SwapPage() {
                       <SelectContent>
                         <SelectItem value="USDC">USDC</SelectItem>
                         <SelectItem value="USDT">USDT</SelectItem>
-                        <SelectItem value="DAI">DAI</SelectItem>
-                        <SelectItem value="FRAX">FRAX</SelectItem>
-                        <SelectItem value="TUSD">TUSD</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

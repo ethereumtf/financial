@@ -108,26 +108,21 @@ export default function CardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                  <div className="text-2xl mb-1">💵</div>
+                  <div className="text-2xl mb-1">🔵</div>
                   <div className="text-sm font-medium text-emerald-600">USDC</div>
-                  <div className="text-lg font-bold">{formatCurrency(15420.50)}</div>
+                  <div className="text-lg font-bold">{formatCurrency(25431.89)}</div>
                 </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                  <div className="text-2xl mb-1">💎</div>
+                  <div className="text-2xl mb-1">🟢</div>
                   <div className="text-sm font-medium text-emerald-600">USDT</div>
-                  <div className="text-lg font-bold">{formatCurrency(8950.75)}</div>
-                </div>
-                <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                  <div className="text-2xl mb-1">🏛️</div>
-                  <div className="text-sm font-medium text-emerald-600">DAI</div>
-                  <div className="text-lg font-bold">{formatCurrency(1476.07)}</div>
+                  <div className="text-lg font-bold">{formatCurrency(15200.00)}</div>
                 </div>
                 <div className="text-center p-3 bg-emerald-50 rounded-lg">
                   <div className="text-2xl mb-1">🔒</div>
                   <div className="text-sm font-medium text-emerald-600">Total</div>
-                  <div className="text-lg font-bold">{formatCurrency(25847.32)}</div>
+                  <div className="text-lg font-bold">{formatCurrency(40631.89)}</div>
                 </div>
               </div>
               <div className={`text-sm text-muted-foreground leading-relaxed p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg ${isLoadingAI ? 'animate-pulse' : ''}`}>
