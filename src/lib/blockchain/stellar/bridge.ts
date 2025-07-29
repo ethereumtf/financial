@@ -1,5 +1,5 @@
 import { Server, TransactionBuilder, Asset, Keypair, Networks } from 'stellar-sdk';
-import config from '../../../config/blockchain';
+import { blockchainConfig as config } from '../../config/blockchain';
 
 interface PaymentParams {
   source: string;

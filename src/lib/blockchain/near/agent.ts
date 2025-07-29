@@ -1,5 +1,5 @@
 import { connect, WalletConnection, keyStores } from 'near-api-js';
-import config from '../../../config/blockchain';
+import { blockchainConfig as config } from '../../config/blockchain';
 
 interface SolverParams {
   contractId: string;
