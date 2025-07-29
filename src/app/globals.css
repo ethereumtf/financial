@@ -8,61 +8,62 @@ body {
 
 @layer base {
   :root {
+    /* Stablecoin-focused emerald theme */
     --background: 210 20% 98%;
     --foreground: 220 25% 15%;
     --card: 0 0% 100%;
     --card-foreground: 220 25% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 15%;
-    --primary: 220 25% 15%;
+    --primary: 158 60% 52%; /* Emerald primary */
     --primary-foreground: 210 20% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 220 25% 15%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 56.9%; /* Slightly lighter for better contrast on light gray */
-    --accent: 150 40% 45%;
+    --secondary: 156 100% 96%; /* Light emerald */
+    --secondary-foreground: 158 60% 22%;
+    --muted: 156 100% 96%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 160 84% 39%; /* Emerald accent */
     --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 220 25% 15%;
+    --border: 156 39% 88%; /* Soft emerald border */
+    --input: 156 39% 88%;
+    --ring: 158 60% 52%;
     --radius: 0.5rem;
-    /* Chart Colors */
-    --chart-1: 220 25% 15%; /* Deep Navy */
-    --chart-2: 150 40% 45%; /* Calming Green */
-    --chart-3: 210 40% 70%; /* Muted Blue */
-    --chart-4: 30 80% 65%;  /* Soft Orange */
-    --chart-5: 280 40% 75%; /* Soft Purple */
+    /* Stablecoin Chart Colors */
+    --chart-1: 158 60% 52%; /* Emerald */
+    --chart-2: 162 63% 41%; /* Teal */
+    --chart-3: 154 73% 56%; /* Light emerald */
+    --chart-4: 152 76% 64%; /* Mint green */
+    --chart-5: 160 84% 39%; /* Deep emerald */
   }
 
   .dark {
-    /* Define a dark theme as a fallback or for user preference */
-    --background: 220 25% 10%;
+    /* Stablecoin dark theme */
+    --background: 158 26% 6%; /* Dark emerald */
     --foreground: 210 20% 98%;
-    --card: 220 25% 15%;
+    --card: 158 26% 10%;
     --card-foreground: 210 20% 98%;
-    --popover: 220 25% 10%;
+    --popover: 158 26% 6%;
     --popover-foreground: 210 20% 98%;
-    --primary: 210 20% 98%;
-    --primary-foreground: 220 25% 15%;
-    --secondary: 217.2 32.6% 22.5%;
+    --primary: 158 60% 52%; /* Emerald primary */
+    --primary-foreground: 158 26% 6%;
+    --secondary: 158 32% 15%;
     --secondary-foreground: 210 20% 98%;
-    --muted: 217.2 32.6% 22.5%;
+    --muted: 158 32% 15%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 150 40% 55%;
-    --accent-foreground: 220 25% 15%;
+    --accent: 160 84% 39%; /* Emerald accent */
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 22.5%;
-    --input: 217.2 32.6% 22.5%;
-    --ring: 210 20% 98%;
-    /* Chart Colors */
-    --chart-1: 210 20% 98%;
-    --chart-2: 150 40% 55%;
-    --chart-3: 210 40% 70%;
-    --chart-4: 30 80% 65%;
-    --chart-5: 280 40% 75%;
+    --border: 158 32% 15%;
+    --input: 158 32% 15%;
+    --ring: 158 60% 52%;
+    /* Stablecoin Dark Chart Colors */
+    --chart-1: 158 60% 52%;
+    --chart-2: 162 63% 41%;
+    --chart-3: 154 73% 56%;
+    --chart-4: 152 76% 64%;
+    --chart-5: 160 84% 39%;
   }
 }
 

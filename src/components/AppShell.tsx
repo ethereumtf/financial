@@ -28,7 +28,7 @@ const navigationItems = [
     icon: Zap
   },
   {
-    name: 'Swap',
+    name: 'Stablecoin Swap',
     href: '/swap',
     icon: ArrowLeftRight
   },
@@ -38,7 +38,7 @@ const navigationItems = [
     icon: BarChart3
   },
   {
-    name: 'Card',
+    name: 'Stablecoin Card',
     href: '/card',
     icon: CreditCard
   },
@@ -85,10 +85,13 @@ export function AppShell({ children }: AppShellProps) {
           <div className="flex h-full max-h-screen flex-col gap-2">
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
               <Link href="/" className="flex items-center gap-2 font-semibold">
-                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">$</span>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">$</span>
                 </div>
-                <span className="text-lg">USD Financial</span>
+                <div>
+                  <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
+                  <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin Financial</div>
+                </div>
               </Link>
             </div>
             <div className="flex-1">
@@ -113,10 +116,13 @@ export function AppShell({ children }: AppShellProps) {
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
                 <div className="flex items-center gap-2 font-semibold mb-6">
-                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                    <span className="text-primary-foreground font-bold text-sm">$</span>
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">$</span>
                   </div>
-                  <span className="text-lg">USD Financial</span>
+                  <div>
+                    <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
+                    <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin Financial</div>
+                  </div>
                 </div>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navigationItems.map((item) => (
@@ -127,10 +133,13 @@ export function AppShell({ children }: AppShellProps) {
             </Sheet>
             <div className="w-full flex-1">
               <Link href="/" className="flex items-center gap-2 font-semibold">
-                <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xs">$</span>
+                <div className="h-6 w-6 rounded bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">$</span>
                 </div>
-                <span>USD Financial</span>
+                <div>
+                  <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
+                  <div className="text-xs text-emerald-600 font-medium -mt-1">Stablecoin</div>
+                </div>
               </Link>
             </div>
             <DropdownMenu>

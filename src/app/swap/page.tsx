@@ -1,145 +1,307 @@
-import { ArrowUpDown, TrendingUp, Clock, Globe } from 'lucide-react'
+'use client'
+
+import { useState } from 'react'
+import { ArrowUpDown, TrendingUp, Clock, RefreshCw, Zap, Shield, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { mockStablecoinTransactions, formatCurrency, getStablecoinIcon, StablecoinSymbol } from '@/lib/data'
+
+interface StablecoinPair {
+  from: StablecoinSymbol
+  to: StablecoinSymbol
+  rate: number
+  change: string
+  trend: 'up' | 'down'
+  liquidity: number
+  fee: number
+}
 
 export default function SwapPage() {
-  const exchangeRates = [
-    { from: 'USD', to: 'EUR', rate: 0.85, change: '+0.12%', trend: 'up' },
-    { from: 'USD', to: 'GBP', rate: 0.73, change: '-0.08%', trend: 'down' },
-    { from: 'USD', to: 'JPY', rate: 110.25, change: '+0.45%', trend: 'up' },
-    { from: 'USD', to: 'CAD', rate: 1.25, change: '+0.23%', trend: 'up' },
-    { from: 'USD', to: 'AUD', rate: 1.35, change: '-0.15%', trend: 'down' },
-    { from: 'USD', to: 'CHF', rate: 0.92, change: '+0.09%', trend: 'up' },
+  const [fromAmount, setFromAmount] = useState('1000')
+  const [fromToken, setFromToken] = useState<StablecoinSymbol>('USDC')
+  const [toToken, setToToken] = useState<StablecoinSymbol>('USDT')
+  const [isSwapping, setIsSwapping] = useState(false)
+
+  const stablecoinPairs: StablecoinPair[] = [
+    { from: 'USDC', to: 'USDT', rate: 0.9998, change: '+0.02%', trend: 'up', liquidity: 50000000, fee: 0.01 },
+    { from: 'USDC', to: 'DAI', rate: 0.9995, change: '-0.01%', trend: 'down', liquidity: 25000000, fee: 0.01 },
+    { from: 'USDT', to: 'DAI', rate: 1.0003, change: '+0.03%', trend: 'up', liquidity: 15000000, fee: 0.01 },
+    { from: 'DAI', to: 'FRAX', rate: 1.0001, change: '+0.01%', trend: 'up', liquidity: 8000000, fee: 0.02 },
+    { from: 'FRAX', to: 'USDC', rate: 0.9999, change: '-0.01%', trend: 'down', liquidity: 12000000, fee: 0.02 },
+    { from: 'USDT', to: 'TUSD', rate: 1.0002, change: '+0.02%', trend: 'up', liquidity: 5000000, fee: 0.02 },
   ]
 
-  const recentSwaps = [
-    { from: 'USD', to: 'EUR', amount: 1000, converted: 850, date: '2024-01-15', rate: 0.85 },
-    { from: 'EUR', to: 'USD', amount: 500, converted: 588.24, date: '2024-01-12', rate: 1.18 },
-    { from: 'USD', to: 'GBP', amount: 750, converted: 547.50, date: '2024-01-10', rate: 0.73 },
-  ]
+  const recentSwaps = mockStablecoinTransactions
+    .filter(tx => tx.type === 'swap')
+    .slice(0, 3)
+    .map(tx => ({
+      from: 'USDC' as StablecoinSymbol,
+      to: tx.stablecoin,
+      amount: Math.abs(tx.amount),
+      converted: Math.abs(tx.amount) * 0.9998,
+      date: tx.date,
+      rate: 0.9998
+    }))
+
+  const currentPair = stablecoinPairs.find(p => p.from === fromToken && p.to === toToken) || stablecoinPairs[0]
+  const toAmount = fromAmount ? (parseFloat(fromAmount) * currentPair.rate).toFixed(4) : '0'
+  const estimatedFee = fromAmount ? (parseFloat(fromAmount) * currentPair.fee / 100).toFixed(4) : '0'
+
+  const handleSwapTokens = () => {
+    setFromToken(toToken)
+    setToToken(fromToken)
+  }
+
+  const handleSwap = async () => {
+    setIsSwapping(true)
+    // Simulate swap transaction
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setIsSwapping(false)
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Exchange</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            Stablecoin Swap
+          </h1>
+          <p className="text-muted-foreground mt-1">Exchange stablecoins with minimal slippage and low fees</p>
+        </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Clock className="h-4 w-4 mr-2" />
             History
           </Button>
+          <Button variant="outline" size="sm">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
         </div>
       </div>
 
-      {/* Exchange Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Currency Exchange</CardTitle>
-          <CardDescription>
-            Exchange currencies at competitive rates with real-time updates
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* From Currency */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">From</label>
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 p-3 border rounded-lg bg-background">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">USD</span>
-                    <span className="text-sm text-muted-foreground">United States Dollar</span>
+      {/* Swap Interface */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card className="border-emerald-200 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50">
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+                  <ArrowUpDown className="h-4 w-4 text-white" />
+                </div>
+                Stablecoin Exchange
+              </CardTitle>
+              <CardDescription>
+                Swap between stablecoins with institutional-grade liquidity and minimal fees
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              {/* From Token */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-muted-foreground">From</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 z-10">
+                    <span className="text-2xl">{getStablecoinIcon(fromToken)}</span>
+                    <Select value={fromToken} onValueChange={(value: StablecoinSymbol) => setFromToken(value)}>
+                      <SelectTrigger className="w-24 h-8 border-none bg-transparent p-0 font-semibold text-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USDC">USDC</SelectItem>
+                        <SelectItem value="USDT">USDT</SelectItem>
+                        <SelectItem value="DAI">DAI</SelectItem>
+                        <SelectItem value="FRAX">FRAX</SelectItem>
+                        <SelectItem value="TUSD">TUSD</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={fromAmount}
+                    onChange={(e) => setFromAmount(e.target.value)}
+                    className="h-20 text-2xl font-bold pl-28 pr-4 border-2 focus:border-emerald-300"
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Balance: 25,847.32 {fromToken}</span>
+                  <button className="text-emerald-600 hover:text-emerald-700 font-medium">Max</button>
                 </div>
               </div>
-              <div className="relative">
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  className="w-full p-3 text-2xl font-bold border rounded-lg bg-background"
-                  defaultValue="1000"
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
-                  USD
-                </div>
-              </div>
-            </div>
 
-            {/* To Currency */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">To</label>
-              <div className="flex items-center space-x-2">
-                <div className="flex-1 p-3 border rounded-lg bg-background">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">EUR</span>
-                    <span className="text-sm text-muted-foreground">Euro</span>
-                  </div>
-                </div>
-                <Button size="icon" variant="outline">
-                  <ArrowUpDown className="h-4 w-4" />
+              {/* Swap Button */}
+              <div className="flex justify-center">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={handleSwapTokens}
+                  className="rounded-full border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50"
+                >
+                  <ArrowUpDown className="h-4 w-4 text-emerald-600" />
                 </Button>
               </div>
-              <div className="relative">
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  className="w-full p-3 text-2xl font-bold border rounded-lg bg-muted"
-                  value="850.00"
-                  readOnly
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
-                  EUR
+
+              {/* To Token */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-muted-foreground">To</label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center space-x-2 z-10">
+                    <span className="text-2xl">{getStablecoinIcon(toToken)}</span>
+                    <Select value={toToken} onValueChange={(value: StablecoinSymbol) => setToToken(value)}>
+                      <SelectTrigger className="w-24 h-8 border-none bg-transparent p-0 font-semibold text-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USDC">USDC</SelectItem>
+                        <SelectItem value="USDT">USDT</SelectItem>
+                        <SelectItem value="DAI">DAI</SelectItem>
+                        <SelectItem value="FRAX">FRAX</SelectItem>
+                        <SelectItem value="TUSD">TUSD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={toAmount}
+                    readOnly
+                    className="h-20 text-2xl font-bold pl-28 pr-4 bg-muted border-2"
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Balance: 12,453.67 {toToken}</span>
+                  <span>≈ ${toAmount}</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Exchange Rate</span>
-              <span className="font-medium">1 USD = 0.85 EUR</span>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-sm text-muted-foreground">Fee</span>
-              <span className="font-medium">$2.50 (0.25%)</span>
-            </div>
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-sm font-medium">You'll receive</span>
-              <span className="font-bold">€850.00</span>
-            </div>
-          </div>
+              {/* Transaction Details */}
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Exchange Rate</span>
+                    <span className="font-medium">1 {fromToken} = {currentPair.rate} {toToken}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Fee ({currentPair.fee}%)</span>
+                    <span className="font-medium">${estimatedFee}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Minimum Received</span>
+                    <span className="font-medium">{(parseFloat(toAmount) * 0.995).toFixed(4)} {toToken}</span>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">You'll receive</span>
+                      <span className="font-bold text-emerald-600">{toAmount} {toToken}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <Button className="w-full mt-6" size="lg">
-            Exchange Now
-          </Button>
-        </CardContent>
-      </Card>
+              <Button 
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" 
+                size="lg"
+                onClick={handleSwap}
+                disabled={isSwapping || !fromAmount || parseFloat(fromAmount) <= 0}
+              >
+                {isSwapping ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Swapping...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Swap Stablecoins
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Live Exchange Rates */}
+        {/* Market Info Sidebar */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Shield className="h-4 w-4 text-emerald-600" />
+                Market Info
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Liquidity</span>
+                <span className="text-sm font-medium">{formatCurrency(currentPair.liquidity)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">24h Change</span>
+                <Badge variant={currentPair.trend === 'up' ? 'default' : 'secondary'} className="text-xs">
+                  <TrendingUp className={`h-3 w-3 mr-1 ${currentPair.trend === 'down' ? 'rotate-180' : ''}`} />
+                  {currentPair.change}
+                </Badge>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Slippage</span>
+                <span className="text-sm font-medium text-emerald-600">0.05%</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Info className="h-4 w-4 text-blue-600" />
+                Why Stablecoins?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>• Price stability (~$1.00)</p>
+              <p>• Instant settlements</p>
+              <p>• Low volatility risk</p>
+              <p>• Global accessibility</p>
+              <p>• DeFi compatibility</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Live Stablecoin Rates */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Live Exchange Rates
+            <TrendingUp className="h-5 w-5 text-emerald-600" />
+            Live Stablecoin Rates
           </CardTitle>
           <CardDescription>
-            Real-time currency rates updated every minute
+            Real-time exchange rates between major stablecoins
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {exchangeRates.map((rate, index) => (
-              <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{rate.from}/{rate.to}</div>
-                  <Badge variant={rate.trend === 'up' ? 'default' : 'secondary'}>
-                    <TrendingUp className={`h-3 w-3 mr-1 ${rate.trend === 'down' ? 'rotate-180' : ''}`} />
-                    {rate.change}
+            {stablecoinPairs.map((pair, index) => (
+              <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow hover:border-emerald-200">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span>{getStablecoinIcon(pair.from)}</span>
+                    <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                    <span>{getStablecoinIcon(pair.to)}</span>
+                    <span className="font-medium text-sm">{pair.from}/{pair.to}</span>
+                  </div>
+                  <Badge variant={pair.trend === 'up' ? 'default' : 'secondary'} className="bg-emerald-100 text-emerald-800">
+                    <TrendingUp className={`h-3 w-3 mr-1 ${pair.trend === 'down' ? 'rotate-180' : ''}`} />
+                    {pair.change}
                   </Badge>
                 </div>
-                <div className="text-xl font-bold">{rate.rate}</div>
-                <div className="text-sm text-muted-foreground">
-                  1 {rate.from} = {rate.rate} {rate.to}
+                <div className="text-xl font-bold">{pair.rate}</div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  1 {pair.from} = {pair.rate} {pair.to}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Liquidity: {formatCurrency(pair.liquidity)}
                 </div>
               </div>
             ))}
@@ -147,25 +309,32 @@ export default function SwapPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Exchanges */}
+      {/* Recent Stablecoin Swaps */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Exchanges</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-emerald-600" />
+            Recent Stablecoin Swaps
+          </CardTitle>
           <CardDescription>
-            Your recent currency exchange transactions
+            Your recent stablecoin exchange transactions
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {recentSwaps.map((swap, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+              <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-emerald-50/50 transition-colors">
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <ArrowUpDown className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <ArrowUpDown className="h-5 w-5 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="font-medium">
-                      {swap.from} → {swap.to}
+                    <div className="flex items-center gap-2 font-medium">
+                      <span>{getStablecoinIcon(swap.from)}</span>
+                      <span>{swap.from}</span>
+                      <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                      <span>{getStablecoinIcon(swap.to)}</span>
+                      <span>{swap.to}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Rate: 1 {swap.from} = {swap.rate} {swap.to}
@@ -174,7 +343,7 @@ export default function SwapPage() {
                 </div>
                 <div className="text-right">
                   <div className="font-medium">
-                    {swap.amount} {swap.from} → {swap.converted} {swap.to}
+                    {formatCurrency(swap.amount)} → {formatCurrency(swap.converted)}
                   </div>
                   <div className="text-sm text-muted-foreground">{swap.date}</div>
                 </div>

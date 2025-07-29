@@ -51,92 +51,147 @@ export default function CardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">My Card</h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+            Stablecoin Debit Card
+          </h1>
+          <p className="text-muted-foreground mt-1">Spend your stablecoins anywhere Visa is accepted</p>
+        </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
             <Settings className="h-4 w-4 mr-2" />
-            Settings
+            Card Settings
           </Button>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Virtual Card */}
+        {/* Stablecoin Debit Card */}
         <div className="lg:col-span-1">
-          <VirtualCard className="group hover:scale-105 transition-transform duration-300" />
+          <VirtualCard 
+            className="group hover:scale-105 transition-transform duration-300" 
+            balance={25847.32}
+            primaryStablecoin="USDC"
+          />
           
           {/* Card Actions */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm">
-              <Lock className="h-4 w-4 mr-2" />
-              Freeze Card
-            </Button>
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4 mr-2" />
-              Show PIN
+          <div className="mt-4 space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+                <Lock className="h-4 w-4 mr-2" />
+                Freeze Card
+              </Button>
+              <Button variant="outline" size="sm" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+                <Eye className="h-4 w-4 mr-2" />
+                Show PIN
+              </Button>
+            </div>
+            <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" size="sm">
+              Add Stablecoins
             </Button>
           </div>
         </div>
 
-        {/* Card Details */}
+        {/* Stablecoin Card Features */}
         <div className="lg:col-span-2 space-y-4">
-          {/* AI-Powered Spending Summary */}
-          <Card>
-            <CardHeader>
+          {/* Stablecoin Balance Overview */}
+          <Card className="border-emerald-200">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50">
               <CardTitle className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">AI</span>
+                <div className="w-6 h-6 rounded bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">$</span>
                 </div>
-                Spending Summary
+                Stablecoin Balances
               </CardTitle>
               <CardDescription>
-                AI-powered insights into your spending patterns
+                Your available stablecoin balances for card spending
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-2xl font-bold">
-                  {formatCurrency(mockStablecoinTransactions.filter(tx => tx.type === 'spend').reduce((sum, tx) => sum + Math.abs(tx.amount), 0))}
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                  <div className="text-2xl mb-1">💵</div>
+                  <div className="text-sm font-medium text-emerald-600">USDC</div>
+                  <div className="text-lg font-bold">{formatCurrency(15420.50)}</div>
                 </div>
-                <div className={`text-sm text-muted-foreground leading-relaxed ${isLoadingAI ? 'animate-pulse' : ''}`}>
-                  {aiSummary}
+                <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                  <div className="text-2xl mb-1">💎</div>
+                  <div className="text-sm font-medium text-emerald-600">USDT</div>
+                  <div className="text-lg font-bold">{formatCurrency(8950.75)}</div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    12% less than last month
-                  </div>
-                  <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    On track for monthly budget
-                  </div>
+                <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                  <div className="text-2xl mb-1">🏛️</div>
+                  <div className="text-sm font-medium text-emerald-600">DAI</div>
+                  <div className="text-lg font-bold">{formatCurrency(1476.07)}</div>
+                </div>
+                <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                  <div className="text-2xl mb-1">🔒</div>
+                  <div className="text-sm font-medium text-emerald-600">Total</div>
+                  <div className="text-lg font-bold">{formatCurrency(25847.32)}</div>
+                </div>
+              </div>
+              <div className={`text-sm text-muted-foreground leading-relaxed p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg ${isLoadingAI ? 'animate-pulse' : ''}`}>
+                <div className="font-medium text-emerald-700 mb-2">💡 Stablecoin Spending Insights</div>
+                {aiSummary}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <div className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
+                  ⚡ Instant settlements
+                </div>
+                <div className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-medium">
+                  💰 Zero forex fees
+                </div>
+                <div className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
+                  🌍 Global acceptance
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card Limits */}
+          {/* Stablecoin Card Benefits */}
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+            <Card className="border-emerald-200">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Daily Limit</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <span className="text-emerald-600">⚡</span>
+                  Daily Spending
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(1000)}</div>
-                <p className="text-sm text-muted-foreground">Remaining today</p>
-                <div className="mt-2 w-full bg-secondary rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
+                <div className="text-2xl font-bold text-emerald-600">{formatCurrency(350)}</div>
+                <p className="text-sm text-muted-foreground">Spent today in stablecoins</p>
+                <div className="mt-2 w-full bg-emerald-100 rounded-full h-2">
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full" style={{ width: '35%' }}></div>
                 </div>
+                <p className="text-xs text-emerald-600 mt-1">No daily limits • Spend freely</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-emerald-200">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Monthly Limit</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <span className="text-emerald-600">🔒</span>
+                  Security Features
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(3752)}</div>
-                <p className="text-sm text-muted-foreground">Remaining this month</p>
-                <div className="mt-2 w-full bg-secondary rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full" style={{ width: '25%' }}></div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Real-time notifications</span>
+                    <span className="text-emerald-600 text-xs font-medium">✓ ON</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Biometric security</span>
+                    <span className="text-emerald-600 text-xs font-medium">✓ ON</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Auto-freeze suspicious</span>
+                    <span className="text-emerald-600 text-xs font-medium">✓ ON</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Stablecoin-only mode</span>
+                    <span className="text-emerald-600 text-xs font-medium">✓ ON</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
