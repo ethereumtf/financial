@@ -37,11 +37,7 @@ const marketData = {
 
 const stablecoinPrices = [
   { symbol: 'USDC' as StablecoinSymbol, price: 1.0001, change24h: 0.01, marketCap: 42500000000, volume24h: 8200000000 },
-  { symbol: 'USDT' as StablecoinSymbol, price: 0.9994, change24h: -0.06, marketCap: 85000000000, volume24h: 18400000000 },
-  { symbol: 'DAI' as StablecoinSymbol, price: 0.9998, change24h: -0.02, marketCap: 4800000000, volume24h: 420000000 },
-  { symbol: 'FRAX' as StablecoinSymbol, price: 1.0003, change24h: 0.03, marketCap: 850000000, volume24h: 45000000 },
-  { symbol: 'TUSD' as StablecoinSymbol, price: 1.0000, change24h: 0.00, marketCap: 480000000, volume24h: 12000000 },
-  { symbol: 'BUSD' as StablecoinSymbol, price: 0.9999, change24h: -0.01, marketCap: 680000000, volume24h: 85000000 }
+  { symbol: 'USDT' as StablecoinSymbol, price: 0.9994, change24h: -0.06, marketCap: 85000000000, volume24h: 18400000000 }
 ]
 
 export default function AnalyticsPage() {

@@ -82,7 +82,7 @@ const recentTransactions = [
   {
     id: '3',
     protocol: 'Celer',
-    stablecoin: 'DAI' as StablecoinSymbol,
+    stablecoin: 'USDC' as StablecoinSymbol,
     amount: 800.00,
     fromChain: 137 as ChainId,
     toChain: 1 as ChainId,
@@ -226,7 +226,7 @@ export default function BridgePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {['USDC', 'USDT', 'DAI'].map((coin) => (
+                      {['USDC', 'USDT'].map((coin) => (
                         <SelectItem key={coin} value={coin}>
                           <div className="flex items-center space-x-2">
                             <span>{getStablecoinIcon(coin as StablecoinSymbol)}</span>

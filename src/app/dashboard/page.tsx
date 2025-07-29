@@ -200,7 +200,7 @@ export default function Dashboard() {
                 <Plus className="h-6 w-6 text-emerald-600" />
               </div>
               <h3 className="font-semibold">Deposit Stablecoins</h3>
-              <p className="text-sm text-muted-foreground">Add USDC, USDT, DAI</p>
+              <p className="text-sm text-muted-foreground">Add USDC, USDT</p>
             </div>
           </CardContent>
         </Card>

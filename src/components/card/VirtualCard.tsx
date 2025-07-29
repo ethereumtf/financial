@@ -54,7 +54,7 @@ export function VirtualCard({
           </div>
           <div className="flex items-center gap-1 mt-1">
             <span className="text-lg">{getStablecoinIcon(primaryStablecoin as any)}</span>
-            <span className="text-sm text-emerald-200 font-medium">{primaryStablecoin} PRIMARY</span>
+            <span className="text-sm text-emerald-200 font-medium">{primaryStablecoin}</span>
           </div>
         </div>
         

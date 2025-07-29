@@ -35,7 +35,7 @@ export default function TransactionsPage() {
             </div>
             <div>
               <h3 className="font-semibold">Send Stablecoins</h3>
-              <p className="text-sm text-muted-foreground">Transfer USDC, USDT, DAI</p>
+              <p className="text-sm text-muted-foreground">Transfer USDC, USDT</p>
             </div>
           </CardContent>
         </Card>

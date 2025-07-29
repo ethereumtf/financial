@@ -187,7 +187,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-4 text-slate-900">Deposit Stablecoins</h3>
               <p className="text-slate-600">
-                Start with USDC, USDT, DAI, or any major stablecoin. Connect your wallet and deposit in seconds.
+                Start with USDC or USDT - the two most trusted stablecoins. Connect your wallet and deposit in seconds.
               </p>
             </div>
 
