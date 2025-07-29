@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ethers, BrowserProvider, JsonRpcSigner } from 'ethers';
 import { EtherlinkAdapter } from '../lib/blockchain/etherlink/adapter';
 import { Token, SwapParams, QuoteResponse, TransactionRequest } from '../lib/blockchain/etherlink/types';
@@ -33,7 +33,7 @@ interface UseEtherlinkReturn {
   adapter: EtherlinkAdapter | null;
 }
 
-export const useEtherlink = (provider?: BrowserProvider): UseEtherlinkReturn => {
+export const useEtherlink = (): UseEtherlinkReturn => {
   const [adapter, setAdapter] = useState<EtherlinkAdapter | null>(null);
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<bigint | null>(null);
@@ -42,9 +42,15 @@ export const useEtherlink = (provider?: BrowserProvider): UseEtherlinkReturn => 
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [isLoadingQuote, setIsLoadingQuote] = useState(false);
 
-  // Initialize adapter when provider changes
-  useEffect(() => {
-    if (provider) {
+  // Initialize adapter with browser provider
+  const initAdapter = useCallback(async () => {
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      console.warn('No Ethereum provider found. Please install MetaMask or another Web3 provider.');
+      return null;
+    }
+
+    try {
+      const browserProvider = new BrowserProvider((window as any).ethereum);
       const etherlinkAdapter = new EtherlinkAdapter({
         network: 'testnet',
         rpcUrl: 'https://node.ghostnet.etherlink.com',
@@ -52,57 +58,53 @@ export const useEtherlink = (provider?: BrowserProvider): UseEtherlinkReturn => 
         explorerUrl: 'https://testnet-explorer.etherlink.com'
       });
       
-      setAdapter(etherlinkAdapter);
+      // Set the provider and signer
+      await etherlinkAdapter.setProvider(browserProvider);
       
-      // Set up event listeners
-      const handleAccountsChanged = (accounts: string[]) => {
-        setAccount(accounts[0] || null);
-      };
+      // Get the signer and update the adapter
+      const signer = await browserProvider.getSigner();
+      etherlinkAdapter.setSigner(signer);
       
-      const handleChainChanged = (newChainId: string) => {
-        // Convert hex chainId to number
-        setChainId(BigInt(parseInt(newChainId, 16)));
-      };
-      
-      // Check if we have a provider with event listeners (like MetaMask)
-      if (provider && typeof window !== 'undefined' && (window as any).ethereum) {
-        (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
-        (window as any).ethereum.on('chainChanged', handleChainChanged);
-        
-        // Initial account check
-        (window as any).ethereum.request({ method: 'eth_accounts' })
-          .then((accounts: string[]) => {
-            if (accounts.length > 0) {
-              setAccount(accounts[0]);
-            }
-          });
-          
-        // Initial chain ID check
-        (window as any).ethereum.request({ method: 'eth_chainId' })
-          .then((hexChainId: string) => {
-            setChainId(BigInt(parseInt(hexChainId, 16)));
-          });
-      }
-      
-      return () => {
-        // Clean up event listeners
-        if (typeof window !== 'undefined' && (window as any).ethereum) {
-          (window as any).ethereum.removeListener('accountsChanged', handleAccountsChanged);
-          (window as any).ethereum.removeListener('chainChanged', handleChainChanged);
-        }
-      };
+      return etherlinkAdapter;
+    } catch (err) {
+      console.error('Error initializing Etherlink adapter:', err);
+      setError(err instanceof Error ? err : new Error('Failed to initialize Etherlink adapter'));
+      return null;
     }
-  }, [provider]);
+  }, []);
+
+  // Initialize adapter on mount
+  useEffect(() => {
+    const init = async () => {
+      const newAdapter = await initAdapter();
+      setAdapter(newAdapter);
+    };
+    
+    init();
+    
+    // Cleanup on unmount
+    return () => {
+      // Any cleanup if needed
+    };
+  }, [initAdapter]);
 
   // Connect to wallet
   const connect = useCallback(async () => {
     if (!adapter) {
-      throw new Error('Etherlink adapter not initialized');
+      const newAdapter = await initAdapter();
+      if (!newAdapter) {
+        throw new Error('Failed to initialize Etherlink adapter');
+      }
+      setAdapter(newAdapter);
     }
     
     try {
       setIsConnecting(true);
       setError(null);
+      
+      if (!adapter) {
+        throw new Error('Etherlink adapter not initialized');
+      }
       
       const { address, chainId } = await adapter.connect();
       setAccount(address);
@@ -116,7 +118,7 @@ export const useEtherlink = (provider?: BrowserProvider): UseEtherlinkReturn => 
     } finally {
       setIsConnecting(false);
     }
-  }, [adapter]);
+  }, [adapter, initAdapter]);
 
   // Disconnect wallet
   const disconnect = useCallback(() => {
