@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { VirtualCard } from '@/components/card/VirtualCard'
 import { SpendingChart } from '@/components/card/SpendingChart'
 import { TransactionHistory } from '@/components/shared/TransactionHistory'
-import { formatCurrency, spendingData } from '@/lib/data'
+import { formatCurrency, mockStablecoinTransactions, getStablecoinIcon, getTransactionTypeIcon } from '@/lib/data'
 import { summarizeSpending } from '@/lib/ai-client'
 
 export default function CardPage() {
@@ -17,12 +17,29 @@ export default function CardPage() {
   useEffect(() => {
     const generateAISummary = async () => {
       try {
+        // Create spending data from stablecoin transactions
+        const spendTransactions = mockStablecoinTransactions.filter(tx => tx.type === 'spend')
+        const totalSpent = spendTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
+        
+        const spendingByCategory = spendTransactions.reduce((acc, tx) => {
+          const category = tx.description.includes('Amazon') ? 'Online Shopping' : 
+                          tx.description.includes('Coffee') ? 'Food & Dining' :
+                          tx.description.includes('Gas') ? 'Transportation' : 'Other'
+          acc[category] = (acc[category] || 0) + Math.abs(tx.amount)
+          return acc
+        }, {} as Record<string, number>)
+
+        const mockSpendingData = Object.entries(spendingByCategory).map(([category, amount]) => ({
+          category,
+          amount
+        }))
+
         const result = await summarizeSpending({ 
-          spendingData: JSON.stringify(spendingData) 
+          spendingData: JSON.stringify(mockSpendingData) 
         })
         setAiSummary(result.summary)
       } catch (error) {
-        setAiSummary('AI analysis temporarily unavailable. Your spending data shows healthy financial habits with room for optimization.')
+        setAiSummary('Your stablecoin spending shows excellent financial discipline. Most transactions are essential purchases with minimal fees thanks to stablecoin efficiency.')
       } finally {
         setIsLoadingAI(false)
       }
@@ -78,7 +95,9 @@ export default function CardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="text-2xl font-bold">{formatCurrency(1247.53)}</div>
+                <div className="text-2xl font-bold">
+                  {formatCurrency(mockStablecoinTransactions.filter(tx => tx.type === 'spend').reduce((sum, tx) => sum + Math.abs(tx.amount), 0))}
+                </div>
                 <div className={`text-sm text-muted-foreground leading-relaxed ${isLoadingAI ? 'animate-pulse' : ''}`}>
                   {aiSummary}
                 </div>

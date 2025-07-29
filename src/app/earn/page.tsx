@@ -2,7 +2,7 @@ import { TrendingUp, Shield, DollarSign, BarChart3, Target, Clock } from 'lucide
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { mockInvestments, formatCurrency } from '@/lib/data'
+import { protocolsData, formatCurrency } from '@/lib/data'
 
 export default function EarnPage() {
   const portfolioValue = 12847.62
@@ -147,27 +147,27 @@ export default function EarnPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            {mockInvestments.map((investment) => (
-              <div key={investment.id} className="p-6 border rounded-lg hover:shadow-lg transition-shadow">
+            {protocolsData.map((protocol) => (
+              <div key={protocol.id} className="p-6 border rounded-lg hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-lg">{investment.name}</h3>
-                    <p className="text-sm text-muted-foreground">{investment.type}</p>
+                    <h3 className="font-semibold text-lg">{protocol.name}</h3>
+                    <p className="text-sm text-muted-foreground">{protocol.category}</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">{investment.return}</div>
-                    <div className="text-sm text-muted-foreground">Expected return</div>
+                    <div className="text-2xl font-bold text-green-600">{protocol.apy}%</div>
+                    <div className="text-sm text-muted-foreground">Current APY</div>
                   </div>
                 </div>
                 
-                <p className="text-sm text-muted-foreground mb-4">{investment.description}</p>
+                <p className="text-sm text-muted-foreground mb-4">{protocol.description}</p>
                 
                 <div className="flex items-center justify-between">
-                  <Badge className={getRiskColor(investment.risk)}>
-                    {investment.risk} Risk
+                  <Badge className={getRiskColor(protocol.riskLevel)}>
+                    {protocol.riskLevel} Risk
                   </Badge>
                   <Button size="sm">
-                    Invest Now
+                    Deposit
                   </Button>
                 </div>
               </div>

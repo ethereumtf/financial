@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User } from 'lucide-react'
+import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -14,11 +14,31 @@ import { cn } from '@/lib/utils'
 const navigationItems = [
   {
     name: 'Dashboard',
-    href: '/',
+    href: '/dashboard',
     icon: Home
   },
   {
-    name: 'Cards',
+    name: 'Yield Farm',
+    href: '/yield',
+    icon: TrendingUp
+  },
+  {
+    name: 'Bridge',
+    href: '/bridge',
+    icon: Zap
+  },
+  {
+    name: 'Swap',
+    href: '/swap',
+    icon: ArrowLeftRight
+  },
+  {
+    name: 'Analytics',
+    href: '/analytics',
+    icon: BarChart3
+  },
+  {
+    name: 'Card',
     href: '/card',
     icon: CreditCard
   },
@@ -26,16 +46,6 @@ const navigationItems = [
     name: 'Transactions',
     href: '/transactions',
     icon: Receipt
-  },
-  {
-    name: 'Exchange',
-    href: '/swap',
-    icon: ArrowLeftRight
-  },
-  {
-    name: 'Invest',
-    href: '/earn',
-    icon: TrendingUp
   }
 ]
 
