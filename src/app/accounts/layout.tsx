@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { AppShell } from "@/components/AppShell"
 
 export const metadata: Metadata = {
   title: 'Accounts - USD Financial',
@@ -10,5 +11,9 @@ export default function AccountsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <AppShell>
+      {children}
+    </AppShell>
+  )
 }
