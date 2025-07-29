@@ -1,8 +1,9 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap } from 'lucide-react'
+import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap, Wallet, DollarSign, Building2, Shield, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -18,34 +19,63 @@ const navigationItems = [
     icon: Home
   },
   {
-    name: 'Yield Farm',
-    href: '/yield',
-    icon: TrendingUp
+    name: 'Accounts',
+    icon: Wallet,
+    subItems: [
+      { name: 'Wallet', href: '/accounts/wallet', icon: Wallet },
+      { name: 'Earn Interest', href: '/accounts/earn', icon: TrendingUp },
+      { name: 'Fiat Gateway', href: '/accounts/fiat', icon: DollarSign },
+      { name: 'Send Money', href: '/accounts/send', icon: ArrowLeftRight }
+    ]
   },
   {
-    name: 'Bridge',
-    href: '/bridge',
-    icon: Zap
+    name: 'Cards',
+    icon: CreditCard,
+    subItems: [
+      { name: 'Physical Card', href: '/cards/physical', icon: CreditCard },
+      { name: 'Virtual Cards', href: '/cards/virtual', icon: CreditCard },
+      { name: 'Rewards', href: '/cards/rewards', icon: TrendingUp },
+      { name: 'Spending Controls', href: '/cards/controls', icon: Shield }
+    ]
   },
   {
-    name: 'Stablecoin Swap',
-    href: '/swap',
-    icon: ArrowLeftRight
+    name: 'Exchange',
+    icon: ArrowLeftRight,
+    subItems: [
+      { name: 'Swap', href: '/swap', icon: ArrowLeftRight },
+      { name: 'Bridge', href: '/bridge', icon: Zap },
+      { name: 'Rates & Market', href: '/exchange/rates', icon: BarChart3 }
+    ]
   },
   {
-    name: 'Analytics',
-    href: '/analytics',
-    icon: BarChart3
+    name: 'Invest',
+    icon: TrendingUp,
+    subItems: [
+      { name: 'Yield Products', href: '/invest/yield', icon: TrendingUp },
+      { name: 'Tokenized Assets', href: '/invest/assets', icon: BarChart3 },
+      { name: 'Auto-Invest', href: '/invest/auto', icon: Zap },
+      { name: 'Portfolio Analytics', href: '/invest/analytics', icon: BarChart3 }
+    ]
   },
   {
-    name: 'Stablecoin Card',
-    href: '/card',
-    icon: CreditCard
+    name: 'Loans',
+    href: '/loans',
+    icon: DollarSign
   },
   {
     name: 'Transactions',
     href: '/transactions',
     icon: Receipt
+  },
+  {
+    name: 'Business',
+    href: '/business',
+    icon: Building2
+  },
+  {
+    name: 'Insurance',
+    href: '/insurance',
+    icon: Shield
   }
 ]
 
@@ -55,14 +85,72 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
+  const [expandedItems, setExpandedItems] = React.useState<string[]>(['Accounts', 'Cards', 'Exchange', 'Invest'])
 
-  const NavLink = ({ item, mobile = false }: { item: typeof navigationItems[0], mobile?: boolean }) => {
-    const isActive = pathname === item.href
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    )
+  }
+
+  const NavLink = ({ item, mobile = false }: { item: any, mobile?: boolean }) => {
+    const hasSubItems = item.subItems && item.subItems.length > 0
+    const isExpanded = expandedItems.includes(item.name)
+    const isActive = pathname === item.href || (hasSubItems && item.subItems.some((sub: any) => pathname === sub.href))
     const Icon = item.icon
+
+    if (hasSubItems) {
+      return (
+        <div className="space-y-1">
+          <button
+            onClick={() => toggleExpanded(item.name)}
+            className={cn(
+              "w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive 
+                ? "bg-primary text-primary-foreground" 
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              mobile && "text-base"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Icon className="h-4 w-4" />
+              {item.name}
+            </div>
+            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
+          {isExpanded && (
+            <div className="ml-6 space-y-1">
+              {item.subItems.map((subItem: any) => {
+                const isSubActive = pathname === subItem.href
+                const SubIcon = subItem.icon
+                return (
+                  <Link
+                    key={subItem.href}
+                    href={subItem.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      isSubActive 
+                        ? "bg-emerald-100 text-emerald-700 border-l-2 border-emerald-500" 
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      mobile && "text-base"
+                    )}
+                  >
+                    <SubIcon className="h-4 w-4" />
+                    {subItem.name}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+    }
 
     return (
       <Link
-        href={item.href}
+        href={item.href!}
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
           isActive 
