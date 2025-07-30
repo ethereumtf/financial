@@ -307,12 +307,14 @@ export default function LandingPage() {
             <span className="font-semibold text-emerald-700"> Your stablecoin. Your financial world.</span>
           </p>
           
-          <Link href="/dashboard">
-            <Button size="lg" className="text-lg px-12 py-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 group">
-              Join the Waitlist Today
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            onClick={handleJoinWaitlist}
+            className="text-lg px-12 py-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 group"
+          >
+            Join the Waitlist Today
+            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
         </div>
       </div>
 
