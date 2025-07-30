@@ -1,11 +1,11 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions'
 
 const CHAIN_TO_API: Record<string, string> = {
-  '1': 'https://api.1inch.io/v5.0/1/',
-  '56': 'https://api.1inch.io/v5.0/56/',
-  '137': 'https://api.1inch.io/v5.0/137/',
-  '10': 'https://api.1inch.io/v5.0/10/',
-  '42161': 'https://api.1inch.io/v5.0/42161/',
+  '1': 'https://api.1inch.dev/swap/v5.2/1',
+  '56': 'https://api.1inch.dev/swap/v5.2/56',
+  '137': 'https://api.1inch.dev/swap/v5.2/137',
+  '10': 'https://api.1inch.dev/swap/v5.2/10',
+  '42161': 'https://api.1inch.dev/swap/v5.2/42161',
 }
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
@@ -73,6 +73,13 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
     // Build 1inch API URL
     const apiKey = process.env.NEXT_PUBLIC_1INCH_API_KEY || ''
+    console.log('Environment check:', {
+      hasApiKey: !!apiKey,
+      apiKeyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'none',
+      chainId,
+      apiUrl
+    })
+
     const queryParams = new URLSearchParams({
       fromTokenAddress,
       toTokenAddress,
@@ -80,20 +87,29 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       slippage,
       disableEstimate,
       allowPartialFill,
-      ...(fromAddress && { fromAddress }),
-      ...(apiKey && { key: apiKey })
+      ...(fromAddress && { fromAddress })
     })
 
-    const oneInchUrl = `${apiUrl}quote?${queryParams.toString()}`
+    const oneInchUrl = `${apiUrl}/quote?${queryParams.toString()}`
+    console.log('Calling 1inch API:', oneInchUrl)
+
+    // Set up headers with API key for v6.0
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'User-Agent': 'USD-Financial/1.0'
+    }
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`
+    }
 
     // Make request to 1inch API
     const response = await fetch(oneInchUrl, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'USD-Financial/1.0'
-      }
+      headers
     })
+
+    console.log('1inch API response status:', response.status)
 
     if (!response.ok) {
       const errorText = await response.text()

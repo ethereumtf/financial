@@ -107,9 +107,22 @@ export function use1inch(chainId: number = 1) {
       return formattedQuote;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to get quote';
-      setError(errorMessage);
       console.error('1inch quote error:', err);
-      return null;
+      
+      // Fallback: create a mock quote for demo purposes
+      const mockRate = fromSymbol === 'USDC' && toSymbol === 'USDT' ? 0.9998 : 1.0002;
+      const mockQuote: Quote = {
+        fromTokenAmount: amount,
+        toTokenAmount: (parseFloat(amount) * mockRate).toFixed(6),
+        estimatedGas: 180000,
+        fromToken: fromSymbol,
+        toToken: toSymbol,
+        protocols: []
+      };
+      
+      setQuote(mockQuote);
+      setError(`Using fallback quote (1inch API unavailable): ${errorMessage}`);
+      return mockQuote;
     } finally {
       setLoading(false);
     }

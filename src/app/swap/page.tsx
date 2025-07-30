@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { mockStablecoinTransactions, formatCurrency, getStablecoinIcon, StablecoinSymbol } from '@/lib/data'
 import { use1inch } from '@/hooks/use1inch'
+import { OneInchDebug } from '@/components/debug/1InchDebug'
 
 interface StablecoinPair {
   from: StablecoinSymbol
@@ -414,6 +415,19 @@ export default function SwapPage() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Debug Panel - Remove in production */}
+      <Card className="border-orange-200 bg-orange-50">
+        <CardHeader>
+          <CardTitle className="text-orange-800">🛠️ Development Debug Panel</CardTitle>
+          <CardDescription className="text-orange-600">
+            This panel is for testing the 1inch integration. Remove this in production.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OneInchDebug />
         </CardContent>
       </Card>
 

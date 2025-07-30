@@ -1,11 +1,11 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions'
 
 const CHAIN_TO_API: Record<string, string> = {
-  '1': 'https://api.1inch.io/v5.0/1/',
-  '56': 'https://api.1inch.io/v5.0/56/',
-  '137': 'https://api.1inch.io/v5.0/137/',
-  '10': 'https://api.1inch.io/v5.0/10/',
-  '42161': 'https://api.1inch.io/v5.0/42161/',
+  '1': 'https://api.1inch.dev/swap/v5.2/1',
+  '56': 'https://api.1inch.dev/swap/v5.2/56',
+  '137': 'https://api.1inch.dev/swap/v5.2/137',
+  '10': 'https://api.1inch.dev/swap/v5.2/10',
+  '42161': 'https://api.1inch.dev/swap/v5.2/42161',
 }
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
@@ -84,7 +84,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       ...(apiKey && { key: apiKey })
     })
 
-    const oneInchUrl = `${apiUrl}swap?${queryParams.toString()}`
+    const oneInchUrl = `${apiUrl}/swap?${queryParams.toString()}`
 
     // Make request to 1inch API
     const response = await fetch(oneInchUrl, {
