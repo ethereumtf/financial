@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowUpDown, TrendingUp, Clock, RefreshCw, Zap, Shield, Info } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowUpDown, TrendingUp, Clock, RefreshCw, Zap, Shield, Info, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { mockStablecoinTransactions, formatCurrency, getStablecoinIcon, StablecoinSymbol } from '@/lib/data'
+import { use1inch } from '@/hooks/use1inch'
 
 interface StablecoinPair {
   from: StablecoinSymbol
@@ -24,6 +25,18 @@ export default function SwapPage() {
   const [fromToken, setFromToken] = useState<StablecoinSymbol>('USDC')
   const [toToken, setToToken] = useState<StablecoinSymbol>('USDT')
   const [isSwapping, setIsSwapping] = useState(false)
+  const [selectedChain, setSelectedChain] = useState(1) // Ethereum mainnet
+
+  // 1inch integration
+  const { 
+    quote, 
+    loading: quoteLoading, 
+    error: quoteError, 
+    getQuote, 
+    getExchangeRate, 
+    getPriceImpact,
+    supportedChains 
+  } = use1inch(selectedChain)
 
   const stablecoinPairs: StablecoinPair[] = [
     { from: 'USDC', to: 'USDT', rate: 0.9998, change: '+0.02%', trend: 'up', liquidity: 50000000, fee: 0.01 },
@@ -42,9 +55,30 @@ export default function SwapPage() {
       rate: 0.9998
     }))
 
+  // Use 1inch quote data or fallback to mock data
   const currentPair = stablecoinPairs.find(p => p.from === fromToken && p.to === toToken) || stablecoinPairs[0]
-  const toAmount = fromAmount ? (parseFloat(fromAmount) * currentPair.rate).toFixed(4) : '0'
-  const estimatedFee = fromAmount ? (parseFloat(fromAmount) * currentPair.fee / 100).toFixed(4) : '0'
+  const realExchangeRate = getExchangeRate()
+  const toAmount = quote?.toTokenAmount || (fromAmount ? (parseFloat(fromAmount) * currentPair.rate).toFixed(4) : '0')
+  const priceImpact = getPriceImpact()
+  const estimatedFee = fromAmount ? (parseFloat(fromAmount) * 0.01 / 100).toFixed(4) : '0' // 0.01% fee estimate
+
+  // Auto-fetch quotes when inputs change
+  useEffect(() => {
+    if (fromAmount && parseFloat(fromAmount) > 0 && fromToken !== toToken) {
+      const timeoutId = setTimeout(() => {
+        getQuote(fromToken as 'USDC' | 'USDT', toToken as 'USDC' | 'USDT', fromAmount)
+      }, 500) // Debounce API calls
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [fromAmount, fromToken, toToken, getQuote])
+
+  // Refresh quote
+  const handleRefreshQuote = () => {
+    if (fromAmount && parseFloat(fromAmount) > 0) {
+      getQuote(fromToken as 'USDC' | 'USDT', toToken as 'USDC' | 'USDT', fromAmount)
+    }
+  }
 
   const handleSwapTokens = () => {
     setFromToken(toToken)
@@ -68,12 +102,22 @@ export default function SwapPage() {
           <p className="text-muted-foreground mt-1">Exchange stablecoins with minimal slippage and low fees</p>
         </div>
         <div className="flex items-center space-x-2">
+          <Select value={selectedChain.toString()} onValueChange={(value) => setSelectedChain(parseInt(value))}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Ethereum</SelectItem>
+              <SelectItem value="137">Polygon</SelectItem>
+              <SelectItem value="42161">Arbitrum</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm">
             <Clock className="h-4 w-4 mr-2" />
             History
           </Button>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={handleRefreshQuote} disabled={quoteLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${quoteLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -167,25 +211,69 @@ export default function SwapPage() {
                 </div>
               </div>
 
+              {/* 1inch Quote Status */}
+              {quoteError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-600 text-sm">
+                    <Info className="h-4 w-4" />
+                    {quoteError}
+                  </div>
+                </div>
+              )}
+
               {/* Transaction Details */}
               <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Exchange Rate</span>
-                    <span className="font-medium">1 {fromToken} = {currentPair.rate} {toToken}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        1 {fromToken} = {realExchangeRate > 0 ? realExchangeRate.toFixed(6) : currentPair.rate} {toToken}
+                      </span>
+                      {quote && (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          1inch
+                        </Badge>
+                      )}
+                    </div>
                   </div>
+                  
+                  {priceImpact > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Price Impact</span>
+                      <span className={`font-medium ${priceImpact > 0.5 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                        {priceImpact.toFixed(3)}%
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Fee ({currentPair.fee}%)</span>
+                    <span className="text-sm text-muted-foreground">Network Fee</span>
                     <span className="font-medium">${estimatedFee}</span>
                   </div>
+                  
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Minimum Received</span>
                     <span className="font-medium">{(parseFloat(toAmount) * 0.995).toFixed(4)} {toToken}</span>
                   </div>
+                  
+                  {quote?.estimatedGas && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Est. Gas</span>
+                      <span className="font-medium">{quote.estimatedGas.toLocaleString()}</span>
+                    </div>
+                  )}
+                  
                   <div className="border-t pt-2 mt-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">You'll receive</span>
-                      <span className="font-bold text-emerald-600">{toAmount} {toToken}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-emerald-600">{toAmount} {toToken}</span>
+                        {quoteLoading && (
+                          <RefreshCw className="h-4 w-4 animate-spin text-emerald-600" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -223,21 +311,51 @@ export default function SwapPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Liquidity</span>
-                <span className="text-sm font-medium">{formatCurrency(currentPair.liquidity)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">24h Change</span>
-                <Badge variant={currentPair.trend === 'up' ? 'default' : 'secondary'} className="text-xs">
-                  <TrendingUp className={`h-3 w-3 mr-1 ${currentPair.trend === 'down' ? 'rotate-180' : ''}`} />
-                  {currentPair.change}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Slippage</span>
-                <span className="text-sm font-medium text-emerald-600">0.05%</span>
-              </div>
+              {quote ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Source</span>
+                    <div className="flex items-center gap-1">
+                      <ExternalLink className="h-3 w-3 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-600">1inch</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Network</span>
+                    <span className="text-sm font-medium">
+                      {selectedChain === 1 ? 'Ethereum' : selectedChain === 137 ? 'Polygon' : 'Arbitrum'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Price Impact</span>
+                    <span className={`text-sm font-medium ${priceImpact > 0.5 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {priceImpact.toFixed(3)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Est. Gas</span>
+                    <span className="text-sm font-medium">{quote.estimatedGas.toLocaleString()}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Liquidity</span>
+                    <span className="text-sm font-medium">{formatCurrency(currentPair.liquidity)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">24h Change</span>
+                    <Badge variant={currentPair.trend === 'up' ? 'default' : 'secondary'} className="text-xs">
+                      <TrendingUp className={`h-3 w-3 mr-1 ${currentPair.trend === 'down' ? 'rotate-180' : ''}`} />
+                      {currentPair.change}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Slippage</span>
+                    <span className="text-sm font-medium text-emerald-600">1.0%</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
