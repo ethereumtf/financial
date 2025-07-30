@@ -102,16 +102,16 @@ export default function LandingPage() {
             {/* Stats Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">$2.1B+</div>
-                <div className="text-sm text-slate-600">Stablecoins Under Management</div>
+                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">$230B+</div>
+                <div className="text-sm text-slate-600">Global Stablecoin Market Cap</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">8.2%</div>
-                <div className="text-sm text-slate-600">Average APY Earned</div>
+                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">$1.48T+</div>
+                <div className="text-sm text-slate-600">Worldwide Trading Volume</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">99.9%</div>
-                <div className="text-sm text-slate-600">Protocol Uptime</div>
+                <div className="text-3xl md:text-4xl font-bold text-emerald-600 mb-2">180+</div>
+                <div className="text-sm text-slate-600">Countries with Access</div>
               </div>
             </div>
           </div>
