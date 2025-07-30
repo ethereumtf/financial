@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 9002",
+    "prebuild": "node scripts/check-build-deps.js",
     "build": "next build",
     "postbuild": "cp -r public/. out/",
     "start": "next start",

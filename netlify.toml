@@ -7,6 +7,8 @@
   NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18.18.0"
   NPM_FLAGS = "--legacy-peer-deps --force"
+  # Force resolution of aliases
+  NODE_PATH = "src"
 
 # Netlify DB Configuration (Powered by Neon)
 [[databases]]

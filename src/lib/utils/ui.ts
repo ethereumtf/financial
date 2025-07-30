@@ -1,10 +1,7 @@
-// Re-export UI components to ensure they're available
-export * from '@/components/ui/button';
-export * from '@/components/ui/input';
-export * from '@/components/ui/select';
-export * from '@/components/ui/tabs';
+// UI utility functions
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-// Add any additional UI utility functions here
-export const cn = (...classes: (string | boolean | undefined)[]) => {
-  return classes.filter(Boolean).join(' ');
-};
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
