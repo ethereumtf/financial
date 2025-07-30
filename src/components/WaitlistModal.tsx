@@ -112,12 +112,12 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             )}
           </div>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-            {isSuccess ? 'Welcome to the Future!' : 'Join the Waitlist'}
+            {isSuccess ? 'Welcome to USD Financial!' : 'Join the USD Financial Waitlist'}
           </DialogTitle>
           <p className="text-slate-600 leading-relaxed">
             {isSuccess 
-              ? "You're all set! We'll notify you as soon as USD Financial launches."
-              : "Be among the first to experience the future of stablecoin finance. Get early access and exclusive benefits."
+              ? "You're officially on the list! We'll reach out to you personally in the order you signed up."
+              : "Be among the first to experience USD Financial - where stablecoin is all you need. Join our exclusive early access program."
             }
           </p>
         </DialogHeader>
@@ -214,7 +214,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             {/* Benefits */}
             <div className="pt-4 border-t border-slate-100">
               <p className="text-xs text-slate-500 text-center">
-                By joining, you'll get early access, exclusive rates, and be first to try new features.
+                We'll contact waitlist members in order of signup. Early joiners get priority access and exclusive launch benefits.
               </p>
             </div>
           </form>
@@ -222,11 +222,12 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
           <div className="text-center py-6">
             <div className="space-y-4">
               <div className="text-emerald-600 font-medium">
-                ✨ You're on the list! ✨
+                ✨ You're in! Position secured ✨
               </div>
               <p className="text-sm text-slate-600">
-                We'll send you updates and early access information to{' '}
+                Our team will personally reach out to{' '}
                 <span className="font-medium text-slate-900">{formData.email}</span>
+                {' '}in the order you joined. The earlier you signed up, the sooner you'll hear from us!
               </p>
             </div>
           </div>
