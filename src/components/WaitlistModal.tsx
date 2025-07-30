@@ -73,7 +73,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
         setFormData({ name: '', email: '' })
         setIsSuccess(false)
         onClose()
-      }, 2000)
+      }, 10000)
 
     } catch (error) {
       setErrors({
@@ -214,7 +214,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
             {/* Benefits */}
             <div className="pt-4 border-t border-slate-100">
               <p className="text-xs text-slate-500 text-center">
-                We'll contact waitlist members in order of signup. Early joiners get priority access and exclusive launch benefits.
+              Get on our waitlist today, and we'll reach out to you, in the order of registration, to help you get started.
               </p>
             </div>
           </form>
