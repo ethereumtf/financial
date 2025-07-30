@@ -62,20 +62,20 @@ export default function LandingPage() {
             {/* Premium Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-xl border border-emerald-200/50 shadow-lg mb-8">
               <DollarSign className="h-4 w-4 text-emerald-600" />
-              <span className="text-sm font-medium text-emerald-700">Stablecoin is All You Need</span>
+              <span className="text-sm font-medium text-emerald-700">The Future of Stablecoin Financial Services</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-slate-900 mb-6">
               <span className="block">Stablecoin</span>
               <span className="block bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent">
-                Financial Freedom
+                is all you need
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-              The only financial platform you need. Deposit stablecoins, earn yield, spend anywhere. 
+              Your complete financial solution, reimagined. Deposit stablecoins and unlock a suite of powerful financial services. 
               <br />
               <span className="font-semibold text-emerald-700">Stablecoin IN, stablecoin OUT.</span> Simple, stable, secure.
             </p>
@@ -84,7 +84,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
               <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-8 py-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 group">
-                  Start Earning Yield
+                  Discover Our Services
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
