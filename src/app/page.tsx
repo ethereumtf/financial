@@ -170,7 +170,7 @@ export default function LandingPage() {
               Why Stablecoin is All You Need
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Experience the power of stable digital currency with maximum yield potential and zero volatility stress.
+              Experience the power of stablecoin, designed for comprehensive financial solutions and peace of mind.
             </p>
           </div>
 
@@ -183,7 +183,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-slate-900">Rock-Solid Stability</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  No volatility, no surprises. Your $100 stays $100, while earning competitive yields through battle-tested DeFi protocols.
+                  Stablecoins offer remarkable price stability, providing a reliable base for your digital assets. Your funds remain robust, allowing you to focus on your financial goals within our secure ecosystem.
                 </p>
               </CardContent>
             </Card>
@@ -194,9 +194,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-slate-900">Earn While You Hold</h3>
+                <h3 className="text-xl font-semibold mb-4 text-slate-900">Unlock Diverse Financial Services</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Automatic yield farming across Aave, Compound, and Yearn. Your stablecoins work 24/7 generating returns up to 8% APY.
+                  Beyond simple holding, your stablecoins open doors to a full suite of financial tools. Access seamless transactions, lending, and other comprehensive services, all built on the efficiency and transparency of blockchain. Your assets are active, enabling a wide range of possibilities.
                 </p>
               </CardContent>
             </Card>
@@ -207,9 +207,9 @@ export default function LandingPage() {
                 <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <Zap className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-slate-900">Cross-Chain Freedom</h3>
+                <h3 className="text-xl font-semibold mb-4 text-slate-900">Unrestricted Flow & Efficiency</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Bridge your USDC seamlessly between Ethereum, Polygon, Arbitrum, and more. Always find the best rates and lowest fees.
+                  Move your stablecoins effortlessly across major blockchains like Ethereum, Polygon, Arbitrum, and more. Benefit from the inherent speed and low fees of the stablecoin ecosystem, giving you unparalleled control and flexibility over your funds.
                 </p>
               </CardContent>
             </Card>
@@ -225,7 +225,7 @@ export default function LandingPage() {
               Stablecoin IN, Stablecoin OUT
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Three simple steps to maximize your stablecoin potential
+              Three simple steps to unlock your stablecoin's full financial potential
             </p>
           </div>
 
@@ -237,7 +237,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-4 text-slate-900">Deposit Stablecoins</h3>
               <p className="text-slate-600">
-                Start with USDC or USDT - the two most trusted stablecoins. Connect your wallet and deposit in seconds.
+                Start with widely recognized stablecoins like USDC or USDT. Connect your wallet and deposit efficiently, usually within minutes, ready for activation.
               </p>
             </div>
 
@@ -246,9 +246,9 @@ export default function LandingPage() {
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center text-2xl font-bold text-green-600">
                 2
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-900">Auto-Deploy to Highest Yield</h3>
+              <h3 className="text-xl font-semibold mb-4 text-slate-900">Access Integrated Financial Services</h3>
               <p className="text-slate-600">
-                Our algorithms automatically find the best yield opportunities across Aave, Compound, Yearn, and more.
+                Our platform provides access to a range of comprehensive financial services, designed to put your stablecoins to work. We aim to connect you with opportunities that enhance your digital assets within our secure ecosystem.
               </p>
             </div>
 
@@ -257,9 +257,9 @@ export default function LandingPage() {
               <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-teal-100 flex items-center justify-center text-2xl font-bold text-teal-600">
                 3
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-slate-900">Spend or Withdraw Anytime</h3>
+              <h3 className="text-xl font-semibold mb-4 text-slate-900">Spend or Transfer with Ease</h3>
               <p className="text-slate-600">
-                Use our stablecoin debit card for everyday purchases or withdraw to any chain with minimal fees.
+                Utilize our stablecoin debit card for everyday purchases, or transfer your funds to various supported blockchains with minimal fees. Experience flexibility and control over your digital finances.
               </p>
             </div>
           </div>
@@ -270,21 +270,21 @@ export default function LandingPage() {
       <div className="relative py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex justify-center items-center gap-1 mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-6 w-6 fill-emerald-400 text-emerald-400" />
-              ))}
-              <span className="ml-2 text-lg font-semibold text-slate-900">4.9/5</span>
-            </div>
+            {/* No stars or user count */}
+
             <p className="text-lg text-slate-600 mb-8">
-              Trusted by over 250,000 stablecoin holders worldwide
+              Building the future of finance, with insights aligned with industry leaders.
             </p>
-            
+
+            <p className="text-base text-slate-500 mb-4">In Conversation With / Respected By / Informed By</p>
             <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-              <div className="text-2xl font-bold text-slate-700">Coindesk</div>
-              <div className="text-2xl font-bold text-slate-700">DeFiPulse</div>
-              <div className="text-2xl font-bold text-slate-700">Bankless</div>
-              <div className="text-2xl font-bold text-slate-700">Messari</div>
+              <div className="text-2xl font-bold text-slate-700">Ethereum</div>
+              <div className="text-2xl font-bold text-slate-700">Circle</div>
+              <div className="text-2xl font-bold text-slate-700">Tether</div>
+              <div className="text-2xl font-bold text-slate-700">1inch</div>
+              <div className="text-2xl font-bold text-slate-700">Etherlink</div>
+              <div className="text-2xl font-bold text-slate-700">Stellar</div>
+              <div className="text-2xl font-bold text-slate-700">Near</div>
             </div>
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-xl border border-emerald-200/50 shadow-lg mb-8">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-700">Ready to maximize your stablecoins?</span>
+            <span className="text-sm font-medium text-emerald-700">Ready to experience the future of finance?</span>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
@@ -303,13 +303,13 @@ export default function LandingPage() {
           </h2>
           
           <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto">
-            Join thousands of users earning consistent yields on their stablecoins. 
-            <span className="font-semibold text-emerald-700"> Stablecoin is all you need.</span>
+            Discover how stablecoins can empower your financial life.
+            <span className="font-semibold text-emerald-700"> Your stablecoin. Your financial world.</span>
           </p>
           
           <Link href="/dashboard">
             <Button size="lg" className="text-lg px-12 py-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 group">
-              Start Earning Today
+              Join the Waitlist Today
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
