@@ -1,31 +1,23 @@
 import { ChainId, QuoteParams, SwapParams, Transaction } from './types';
 
-const CHAIN_TO_API: Record<number, string> = {
-  1: 'https://api.1inch.io/v5.0/1/',
-  56: 'https://api.1inch.io/v5.0/56/',
-  137: 'https://api.1inch.io/v5.0/137/',
-  10: 'https://api.1inch.io/v5.0/10/',
-  42161: 'https://api.1inch.io/v5.0/42161/',
-};
-
 export class OneInchAdapter {
-  private readonly apiUrl: string;
-  private readonly apiKey: string;
+  private readonly chainId: ChainId;
 
   constructor(chainId: ChainId = 1, apiKey: string = '') {
-    this.apiUrl = CHAIN_TO_API[chainId] || CHAIN_TO_API[1];
-    this.apiKey = apiKey;
+    this.chainId = chainId;
   }
 
   private async fetchFromApi(endpoint: string, params: Record<string, any> = {}) {
+    // Use Netlify functions to avoid CORS issues
     const queryParams = new URLSearchParams({
       ...params,
-      ...(this.apiKey ? { key: this.apiKey } : {}),
+      chainId: this.chainId.toString()
     }).toString();
 
-    const response = await fetch(`${this.apiUrl}${endpoint}?${queryParams}`);
+    const response = await fetch(`/.netlify/functions/1inch-${endpoint}?${queryParams}`);
     if (!response.ok) {
-      throw new Error(`1inch API error: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `1inch API error: ${response.statusText}`);
     }
     return response.json();
   }
@@ -75,26 +67,48 @@ export class OneInchAdapter {
   }
 
   public async getTokens() {
-    return this.fetchFromApi('tokens');
+    // For now, return static token list since we only support USDC/USDT
+    return {
+      tokens: {
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          logoURI: 'https://tokens.1inch.io/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png'
+        },
+        '0xdAC17F958D2ee523a2206206994597C13D831ec7': {
+          symbol: 'USDT',
+          name: 'Tether USD',
+          decimals: 6,
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+          logoURI: 'https://tokens.1inch.io/0xdac17f958d2ee523a2206206994597c13d831ec7.png'
+        }
+      }
+    };
   }
 
   public async getSpender() {
-    const { address } = await this.fetchFromApi('approve/spender');
-    return address;
+    // Return the standard 1inch router address
+    return '0x1111111254fb6c44bAC0beD2854e76F90643097d';
   }
 
   public async getAllowance(tokenAddress: string, walletAddress: string) {
-    return this.fetchFromApi('approve/allowance', {
-      tokenAddress,
-      walletAddress,
-    });
+    // This would require a separate API route for approvals
+    // For now, return 0 allowance
+    return { allowance: '0' };
   }
 
   public async buildApproveTx(tokenAddress: string, amount?: string) {
-    return this.fetchFromApi('approve/transaction', {
-      tokenAddress,
-      ...(amount && { amount }),
-    });
+    // This would require a separate API route for approvals
+    // For now, return a basic approval transaction structure
+    return {
+      to: tokenAddress,
+      data: '0x',
+      value: '0',
+      gasPrice: '0',
+      gas: '100000'
+    };
   }
 
   public async buildSwapTx(params: SwapParams): Promise<Transaction> {
