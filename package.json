@@ -9,7 +9,8 @@
     "postbuild": "cp -r public/. out/",
     "start": "next start",
     "lint": "next lint",
-    "preview": "next build && next start"
+    "preview": "next build && next start",
+    "seed:demo": "node scripts/seed-demo-user.js"
   },
   "dependencies": {
     "@1inch/limit-order-sdk": "^4.9.5-rc.0",

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, DollarSign, BarChart3 } from 'lucide-react'
+import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, DollarSign, BarChart3, LogOut, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistModal } from '@/components/WaitlistModal'
@@ -12,9 +12,11 @@ import { useAuth } from '@/hooks/useAuth'
 
 export default function LandingPage() {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const {
     user,
     loading,
+    signOut,
     showLogin,
     showSignup,
     hideAuth,
@@ -30,6 +32,11 @@ export default function LandingPage() {
 
   const handleCloseWaitlistModal = () => {
     setIsWaitlistModalOpen(false)
+  }
+
+  const handleLogout = async () => {
+    await signOut()
+    setIsUserMenuOpen(false)
   }
 
   return (
@@ -49,8 +56,12 @@ export default function LandingPage() {
             {/* Auth Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
               {user ? (
-                <>
-                  <div className="flex items-center gap-2">
+                <div className="relative">
+                  {/* User Menu Button */}
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-emerald-50 transition-all duration-200"
+                  >
                     <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
                       <span className="text-emerald-600 font-semibold text-sm">
                         {user.name?.charAt(0) || user.email.charAt(0)}
@@ -59,16 +70,42 @@ export default function LandingPage() {
                     <span className="text-slate-600 font-medium hidden sm:block">
                       {user.name || user.email}
                     </span>
-                  </div>
-                  <Link href="/dashboard">
-                    <Button 
-                      size="sm"
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium px-4 sm:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0 text-sm sm:text-base"
-                    >
-                      Dashboard
-                    </Button>
-                  </Link>
-                </>
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                      <div className="px-4 py-2 border-b border-slate-100">
+                        <p className="text-sm font-medium text-slate-900">{user.name}</p>
+                        <p className="text-xs text-slate-500">{user.email}</p>
+                      </div>
+                      <Link 
+                        href="/dashboard"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <DollarSign className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Backdrop to close menu */}
+                  {isUserMenuOpen && (
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                  )}
+                </div>
               ) : (
                 <>
                   <Button 

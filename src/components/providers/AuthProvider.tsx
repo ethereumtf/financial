@@ -40,19 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     try {
-      // Demo credentials check
-      if (email === 'demo@usdfinancial.com' && password === 'demo123') {
-        const demoUser: User = {
-          id: '1',
-          email: 'demo@usdfinancial.com',
-          name: 'Demo User'
-        }
-        setUser(demoUser)
-        localStorage.setItem('auth_user', JSON.stringify(demoUser))
-        return { success: true }
-      }
-
-      // For real authentication, call your backend
       const response = await fetch('/.netlify/functions/signin', {
         method: 'POST',
         headers: {
@@ -77,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: data.error || 'Invalid credentials' }
       }
     } catch (error) {
+      console.error('Sign in error:', error)
       return { success: false, error: 'Sign in failed' }
     } finally {
       setLoading(false)
