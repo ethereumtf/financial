@@ -43,6 +43,39 @@ CREATE TYPE investment_strategy AS ENUM ('Conservative', 'Moderate', 'Aggressive
 CREATE TYPE investment_frequency AS ENUM ('weekly', 'monthly', 'quarterly');
 
 -- ============================================================================
+-- WAITLIST
+-- ============================================================================
+
+-- Waitlist table - Users who sign up for early access
+CREATE TABLE waitlist (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(320) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    source VARCHAR(100) DEFAULT 'landing_page',
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- Create index for email lookups
+CREATE INDEX idx_waitlist_email ON waitlist(email);
+
+-- Create index for created_at for time-based queries
+CREATE INDEX idx_waitlist_created_at ON waitlist(created_at);
+
+-- Trigger to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_waitlist_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER waitlist_updated_at BEFORE UPDATE ON waitlist
+    FOR EACH ROW EXECUTE PROCEDURE update_waitlist_updated_at();
+
+-- ============================================================================
 -- CORE USER MANAGEMENT
 -- ============================================================================
 

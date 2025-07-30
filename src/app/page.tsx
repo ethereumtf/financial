@@ -1,11 +1,23 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, DollarSign, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { WaitlistModal } from '@/components/WaitlistModal'
 
 export default function LandingPage() {
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false)
+
+  const handleJoinWaitlist = () => {
+    setIsWaitlistModalOpen(true)
+  }
+
+  const handleCloseWaitlistModal = () => {
+    setIsWaitlistModalOpen(false)
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 overflow-hidden">
       {/* Navigation Header */}
@@ -76,8 +88,14 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-full border-2 border-emerald-200 bg-white/60 backdrop-blur-xl hover:bg-white/80 text-emerald-700 transition-all duration-300">
-                View Stablecoin Rates
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleJoinWaitlist}
+                className="text-lg px-8 py-6 rounded-full border-2 border-emerald-200 bg-white/60 backdrop-blur-xl hover:bg-white/80 text-emerald-700 transition-all duration-300 group"
+              >
+                <Sparkles className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                Join Waitlist
               </Button>
             </div>
 
@@ -297,6 +315,12 @@ export default function LandingPage() {
           </Link>
         </div>
       </div>
+
+      {/* Waitlist Modal */}
+      <WaitlistModal 
+        isOpen={isWaitlistModalOpen} 
+        onClose={handleCloseWaitlistModal} 
+      />
     </div>
   )
 }
