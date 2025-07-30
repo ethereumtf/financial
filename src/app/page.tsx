@@ -6,9 +6,23 @@ import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, Dolla
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistModal } from '@/components/WaitlistModal'
+import { LoginModal } from '@/components/auth/LoginModal'
+import { SignupModal } from '@/components/auth/SignupModal'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LandingPage() {
   const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false)
+  const {
+    user,
+    loading,
+    showLogin,
+    showSignup,
+    hideAuth,
+    switchToSignup,
+    switchToLogin,
+    isLoginModalOpen,
+    isSignupModalOpen
+  } = useAuth()
 
   const handleJoinWaitlist = () => {
     setIsWaitlistModalOpen(true)
@@ -34,19 +48,48 @@ export default function LandingPage() {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 font-medium px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 text-sm sm:text-base"
-              >
-                Log In
-              </Button>
-              <Button 
-                size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium px-4 sm:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0 text-sm sm:text-base"
-              >
-                Sign Up
-              </Button>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <span className="text-emerald-600 font-semibold text-sm">
+                        {user.name?.charAt(0) || user.email.charAt(0)}
+                      </span>
+                    </div>
+                    <span className="text-slate-600 font-medium hidden sm:block">
+                      {user.name || user.email}
+                    </span>
+                  </div>
+                  <Link href="/dashboard">
+                    <Button 
+                      size="sm"
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium px-4 sm:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0 text-sm sm:text-base"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={showLogin}
+                    disabled={loading}
+                    className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 font-medium px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 text-sm sm:text-base"
+                  >
+                    Log In
+                  </Button>
+                  <Button 
+                    size="sm"
+                    onClick={showSignup}
+                    disabled={loading}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium px-4 sm:px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-0 text-sm sm:text-base"
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -322,6 +365,19 @@ export default function LandingPage() {
       <WaitlistModal 
         isOpen={isWaitlistModalOpen} 
         onClose={handleCloseWaitlistModal} 
+      />
+
+      {/* Authentication Modals */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={hideAuth}
+        onSwitchToSignup={switchToSignup}
+      />
+      
+      <SignupModal
+        isOpen={isSignupModalOpen}
+        onClose={hideAuth}
+        onSwitchToLogin={switchToLogin}
       />
     </div>
   )
