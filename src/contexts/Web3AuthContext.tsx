@@ -37,7 +37,7 @@ export function Web3AuthProvider({ children }: Web3AuthProviderProps) {
     const init = async () => {
       try {
         await web3auth.initModal()
-        if (web3auth.connected) {
+        if (web3auth.connected && web3auth.provider) {
           setProvider(web3auth.provider)
           setIsConnected(true)
           await getUserInfo()
@@ -58,11 +58,13 @@ export function Web3AuthProvider({ children }: Web3AuthProviderProps) {
     try {
       setIsLoading(true)
       const web3authProvider = await web3auth.connect()
-      setProvider(web3authProvider)
-      setIsConnected(true)
-      await getUserInfo()
-      await getAddress()
-      await getBalance()
+      if (web3authProvider) {
+        setProvider(web3authProvider)
+        setIsConnected(true)
+        await getUserInfo()
+        await getAddress()
+        await getBalance()
+      }
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -101,7 +103,10 @@ export function Web3AuthProvider({ children }: Web3AuthProviderProps) {
   }
 
   const getAddress = async () => {
-    if (!provider) return null
+    if (!provider) {
+      setAddress(null)
+      return null
+    }
     try {
       const ethersProvider = new ethers.BrowserProvider(provider)
       const signer = await ethersProvider.getSigner()
@@ -110,20 +115,33 @@ export function Web3AuthProvider({ children }: Web3AuthProviderProps) {
       return userAddress
     } catch (error) {
       console.error('Get address error:', error)
+      setAddress(null)
       return null
     }
   }
 
   const getBalance = async () => {
-    if (!provider || !address) return '0'
+    if (!provider) {
+      setBalance('0')
+      return '0'
+    }
+    
+    // Wait for address if not available yet
+    const currentAddress = address || await getAddress()
+    if (!currentAddress) {
+      setBalance('0')
+      return '0'
+    }
+    
     try {
       const ethersProvider = new ethers.BrowserProvider(provider)
-      const balance = await ethersProvider.getBalance(address)
+      const balance = await ethersProvider.getBalance(currentAddress)
       const balanceInEth = ethers.formatEther(balance)
       setBalance(balanceInEth)
       return balanceInEth
     } catch (error) {
       console.error('Get balance error:', error)
+      setBalance('0')
       return '0'
     }
   }
