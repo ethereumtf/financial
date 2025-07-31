@@ -75,34 +75,38 @@ export function ActivityHistory({ transactions, onTransactionClick }: ActivityHi
     }
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filteredTransactions.map((transaction) => (
           <div
             key={transaction.id}
             onClick={() => onTransactionClick?.(transaction)}
-            className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+            className="bg-white rounded-2xl p-4 border border-gray-100 hover:border-emerald-200 hover:shadow-md cursor-pointer transition-all duration-200 group"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                {getTransactionIcon(transaction.type)}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center shadow-sm">
+                  {getTransactionIcon(transaction.type)}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-base">{transaction.description}</p>
+                  <p className="text-sm text-gray-500 font-medium">{transaction.date}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-gray-900">{transaction.description}</p>
-                <p className="text-sm text-gray-500">{transaction.date}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className={`font-medium ${
-                  transaction.type === 'deposit' ? 'text-green-600' : 
-                  transaction.type === 'withdrawal' ? 'text-red-600' : 
-                  'text-gray-900'
-                }`}>
-                  {transaction.type === 'deposit' ? '+' : '-'}
-                  {formatCurrency(transaction.amount, transaction.currency)}
-                </p>
-                {getStatusBadge(transaction.status)}
+              
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className={`font-bold text-lg ${
+                    transaction.type === 'deposit' ? 'text-emerald-600' : 
+                    transaction.type === 'withdrawal' ? 'text-gray-900' : 
+                    'text-gray-900'
+                  }`}>
+                    {transaction.type === 'deposit' ? '+' : '-'}
+                    {formatCurrency(transaction.amount, transaction.currency)}
+                  </p>
+                  <div className="flex justify-end">
+                    {getStatusBadge(transaction.status)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -112,17 +116,16 @@ export function ActivityHistory({ transactions, onTransactionClick }: ActivityHi
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+    <Card className="border-0 shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-bold text-gray-900">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="deposit">Deposits</TabsTrigger>
-            <TabsTrigger value="withdrawal">Withdrawals</TabsTrigger>
-            <TabsTrigger value="buy">Purchases</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100 p-1 rounded-xl">
+            <TabsTrigger value="all" className="rounded-lg font-semibold">All</TabsTrigger>
+            <TabsTrigger value="deposit" className="rounded-lg font-semibold">Money Added</TabsTrigger>
+            <TabsTrigger value="withdrawal" className="rounded-lg font-semibold">Money Sent</TabsTrigger>
           </TabsList>
           
           <TabsContent value="all">
@@ -137,9 +140,6 @@ export function ActivityHistory({ transactions, onTransactionClick }: ActivityHi
             {renderTransactionList(filterTransactions('withdrawal'))}
           </TabsContent>
           
-          <TabsContent value="buy">
-            {renderTransactionList(filterTransactions('buy'))}
-          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>

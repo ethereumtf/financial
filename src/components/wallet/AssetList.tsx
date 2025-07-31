@@ -40,36 +40,51 @@ export function AssetList({ assets, onAssetClick }: AssetListProps) {
   }
 
   return (
-    <Card>
-      <CardContent className="p-0">
-        <div className="divide-y divide-gray-100">
-          {assets.map((asset) => (
-            <div
-              key={asset.id}
-              onClick={() => onAssetClick?.(asset)}
-              className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">
-                  {asset.icon}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{asset.name}</h3>
-                  <p className="text-sm text-gray-500">{formatBalance(asset.balance, asset.symbol)}</p>
-                </div>
+    <div className="space-y-3">
+      {assets.map((asset) => (
+        <div
+          key={asset.id}
+          onClick={() => onAssetClick?.(asset)}
+          className="bg-white rounded-2xl p-5 border border-gray-100 hover:border-emerald-200 hover:shadow-md cursor-pointer transition-all duration-200 group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center text-2xl shadow-sm">
+                {asset.icon}
               </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">{formatCurrency(asset.usdValue)}</p>
-                  {asset.change24h !== undefined && formatChange(asset.change24h)}
-                </div>
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">{asset.symbol}</h3>
+                <p className="text-sm text-gray-500 font-medium">
+                  {formatBalance(asset.balance, asset.symbol)}
+                </p>
               </div>
             </div>
-          ))}
+            
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="font-bold text-gray-900 text-xl">{formatCurrency(asset.usdValue)}</p>
+                {asset.change24h !== undefined && (
+                  <div className="flex items-center justify-end gap-1">
+                    {formatChange(asset.change24h)}
+                    <span className="text-xs text-gray-400">24h</span>
+                  </div>
+                )}
+              </div>
+              <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+            </div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      ))}
+      
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100 text-center">
+        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+          <span className="text-2xl">💰</span>
+        </div>
+        <h3 className="font-semibold text-emerald-800 mb-1">Stablecoin Focus</h3>
+        <p className="text-sm text-emerald-600">
+          Your wallet is optimized for USDC and USDT transactions with zero gas fees
+        </p>
+      </div>
+    </div>
   )
 }

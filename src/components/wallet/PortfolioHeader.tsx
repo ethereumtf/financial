@@ -25,14 +25,17 @@ export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = fals
   }
 
   return (
-    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-medium text-gray-600">Total Balance</h2>
+    <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 rounded-3xl p-8 border border-emerald-100 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+          <h2 className="text-sm font-semibold text-emerald-700 uppercase tracking-wide">Total Balance</h2>
+        </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleBalanceVisibility}
-          className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
+          className="h-9 w-9 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200"
         >
           {isBalanceVisible ? (
             <EyeOff className="h-4 w-4" />
@@ -42,19 +45,32 @@ export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = fals
         </Button>
       </div>
       
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-3 mb-2">
         {isLoading ? (
-          <div className="h-12 w-48 bg-gray-200 animate-pulse rounded-lg" />
+          <div className="h-14 w-56 bg-emerald-200 animate-pulse rounded-xl" />
         ) : (
-          <h1 className="text-4xl font-bold text-gray-900">
-            {isBalanceVisible ? formatCurrency(totalValue) : '••••••'}
-          </h1>
+          <>
+            <h1 className="text-5xl font-bold text-gray-900 tracking-tight">
+              {isBalanceVisible ? formatCurrency(totalValue).split('.')[0] : '••••••'}
+            </h1>
+            {isBalanceVisible && totalValue % 1 !== 0 && (
+              <span className="text-2xl font-semibold text-gray-600">
+                .{formatCurrency(totalValue).split('.')[1]}
+              </span>
+            )}
+          </>
         )}
       </div>
       
-      <p className="text-sm text-gray-500 mt-1">
-        Available to spend
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-emerald-600">
+          Available to spend • No fees
+        </p>
+        <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
+          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+          Smart Wallet Active
+        </div>
+      </div>
     </div>
   )
 }

@@ -159,11 +159,11 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 pb-8 bg-gray-50 min-h-screen -m-6 p-6">
+      <div className="flex items-center justify-between pt-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-gray-600">Manage your money with zero gas fees</p>
+          <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
+          <p className="text-gray-600 text-lg">Manage your stablecoins with zero fees</p>
         </div>
       </div>
 
@@ -175,11 +175,15 @@ export default function WalletPage() {
       <PrimaryActions
         onDeposit={() => setShowDepositModal(true)}
         onWithdraw={() => setShowWithdrawModal(true)}
-        onBuy={() => console.log('Buy clicked')}
       />
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">Your Assets</h2>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Your Stablecoins</h2>
+          <div className="text-sm text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-medium">
+            💰 {mockAssets.length} Assets
+          </div>
+        </div>
         <AssetList 
           assets={mockAssets}
           onAssetClick={handleAssetClick}
