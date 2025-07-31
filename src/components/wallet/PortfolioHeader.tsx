@@ -64,7 +64,7 @@ export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = fals
       
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-emerald-600">
-          Available to spend • No fees
+          Available to spend
         </p>
         <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>

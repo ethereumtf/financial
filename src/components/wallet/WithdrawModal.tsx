@@ -196,13 +196,17 @@ export function WithdrawModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Send Money</DialogTitle>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="text-center pb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <ArrowUpRight className="h-8 w-8 text-blue-600" />
+          </div>
+          <DialogTitle className="text-2xl font-bold text-gray-900">Send Money</DialogTitle>
+          <p className="text-gray-600">Transfer your assets to another wallet</p>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="space-y-6">
+          <div className="space-y-3">
             <Label htmlFor="asset">Select Asset</Label>
             <Select value={selectedAsset} onValueChange={setSelectedAsset}>
               <SelectTrigger>

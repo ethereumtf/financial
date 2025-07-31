@@ -76,13 +76,13 @@ export function AssetList({ assets, onAssetClick }: AssetListProps) {
         </div>
       ))}
       
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100 text-center">
-        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-          <span className="text-2xl">💰</span>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100 text-center">
+        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+          <span className="text-2xl">🚀</span>
         </div>
-        <h3 className="font-semibold text-emerald-800 mb-1">Stablecoin Focus</h3>
-        <p className="text-sm text-emerald-600">
-          Your wallet is optimized for USDC and USDT transactions with zero gas fees
+        <h3 className="font-semibold text-blue-800 mb-1">Smart Wallet Features</h3>
+        <p className="text-sm text-blue-600">
+          Account Abstraction technology for seamless transactions and enhanced security
         </p>
       </div>
     </div>
