@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertCircle, ArrowRight } from 'lucide-react'
+import { AlertCircle, ArrowRight, ArrowUpRight } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
