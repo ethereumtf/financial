@@ -49,7 +49,7 @@ export function DepositModal({ open, onOpenChange, networks, selectedAsset }: De
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" aria-describedby="deposit-description">
         <DialogHeader className="text-center pb-4">
           <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             {selectedAsset?.icon ? (
@@ -61,7 +61,7 @@ export function DepositModal({ open, onOpenChange, networks, selectedAsset }: De
           <DialogTitle className="text-2xl font-bold text-gray-900">
             Add {selectedAsset?.symbol || 'Money'}
           </DialogTitle>
-          <p className="text-gray-600">Send {selectedAsset?.symbol || 'funds'} to your wallet address</p>
+          <p className="text-gray-600" id="deposit-description">Send {selectedAsset?.symbol || 'funds'} to your wallet address</p>
         </DialogHeader>
 
         <div className="space-y-4">

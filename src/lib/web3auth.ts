@@ -1,7 +1,7 @@
 import { Web3Auth } from "@web3auth/modal";
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
 
-const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "BKYf1g7I0r8VBBBCPBjGWTbUaGWvwYdmVcG8p4WPj4o4FJhN8iJGzUIqHBtZuR6FsF8QnJwXpBaWa2d1dKxL6Hw";
+const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4GjjGKm6bKJ_fJukNQjc9aYAM";
 
 const web3auth = new Web3Auth({
   clientId,
@@ -26,6 +26,37 @@ const web3auth = new Web3Auth({
       primary: "#10b981",
     },
     useLogoLoader: true,
+    modalConfig: {
+      "openlogin": {
+        label: "openlogin",
+        loginMethods: {
+          email_passwordless: {
+            name: "email_passwordless",
+            showOnModal: true,
+          },
+          google: {
+            name: "google", 
+            showOnModal: true,
+          },
+          facebook: {
+            name: "facebook",
+            showOnModal: true,
+          },
+          twitter: {
+            name: "twitter",
+            showOnModal: true,
+          },
+          github: {
+            name: "github",
+            showOnModal: true,
+          },
+          discord: {
+            name: "discord",
+            showOnModal: true,
+          },
+        },
+      },
+    },
   },
 });
 

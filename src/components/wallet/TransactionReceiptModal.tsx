@@ -108,7 +108,7 @@ export function TransactionReceiptModal({ open, onOpenChange, transaction }: Tra
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="receipt-description">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
             {getStatusIcon()}
@@ -116,7 +116,7 @@ export function TransactionReceiptModal({ open, onOpenChange, transaction }: Tra
           
           <div>
             <h2 className="text-xl font-semibold">{getTransactionTitle()}</h2>
-            <p className="text-gray-600">{getStatusMessage()}</p>
+            <p className="text-gray-600" id="receipt-description">{getStatusMessage()}</p>
           </div>
 
           <div className="text-center">

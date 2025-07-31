@@ -121,9 +121,10 @@ export function WithdrawModal({
   if (showConfirmation) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="confirm-description">
           <DialogHeader>
             <DialogTitle>Confirm Withdrawal</DialogTitle>
+            <p className="text-gray-600" id="confirm-description">Please review your transaction details</p>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -196,13 +197,13 @@ export function WithdrawModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg" aria-describedby="withdraw-description">
         <DialogHeader className="text-center pb-4">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <ArrowUpRight className="h-8 w-8 text-blue-600" />
           </div>
           <DialogTitle className="text-2xl font-bold text-gray-900">Send Money</DialogTitle>
-          <p className="text-gray-600">Transfer your assets to another wallet</p>
+          <p className="text-gray-600" id="withdraw-description">Transfer your assets to another wallet</p>
         </DialogHeader>
 
         <div className="space-y-6">
