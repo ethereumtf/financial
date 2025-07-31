@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { Web3AuthProvider } from "@/contexts/Web3AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,8 +25,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
-          {children}
-          <Toaster />
+          <Web3AuthProvider>
+            {children}
+            <Toaster />
+          </Web3AuthProvider>
         </AuthProvider>
       </body>
     </html>

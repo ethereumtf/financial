@@ -8,14 +8,15 @@ import { ActivityHistory } from '@/components/wallet/ActivityHistory'
 import { DepositModal } from '@/components/wallet/DepositModal'
 import { WithdrawModal } from '@/components/wallet/WithdrawModal'
 import { TransactionReceiptModal } from '@/components/wallet/TransactionReceiptModal'
+import { useWeb3Auth } from '@/contexts/Web3AuthContext'
 
 export default function WalletPage() {
-  const [isWalletCreated, setIsWalletCreated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { isConnected, isLoading: web3Loading, login, address, balance, user, sendTransaction } = useWeb3Auth()
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
+  const [isCreatingWallet, setIsCreatingWallet] = useState(false)
 
   // Mock data for the AA wallet
   const mockAssets = [
@@ -41,12 +42,12 @@ export default function WalletPage() {
     }
   ]
 
-  const mockNetworks = [
+  const networks = [
     {
       id: 'ethereum',
       name: 'Ethereum Mainnet',
       displayName: 'Ethereum',
-      address: '0xA0b86a33E6411A3BBBf8f4619Bb18C82e3e39C0F',
+      address: address || '',
       minimumDeposit: 10,
       estimatedTime: '2-5 minutes',
       fee: 0.002,
@@ -56,7 +57,7 @@ export default function WalletPage() {
       id: 'polygon',
       name: 'Polygon',
       displayName: 'Polygon',
-      address: '0xB1c97a44F7411B3cCcF9f5731Cc29C93f4E40D1G',
+      address: address || '',
       minimumDeposit: 1,
       estimatedTime: '1-2 minutes',
       fee: 0.001,
@@ -87,24 +88,17 @@ export default function WalletPage() {
     }
   ]
 
-  const totalBalance = mockAssets.reduce((sum, asset) => sum + asset.usdValue, 0)
+  const totalBalance = mockAssets.reduce((sum, asset) => sum + asset.usdValue, 0) + parseFloat(balance || '0') * 3200 // Approximate ETH to USD
 
-  useEffect(() => {
-    // Simulate wallet initialization
-    const timer = setTimeout(() => {
-      setIsWalletCreated(true)
-      setIsLoading(false)
-    }, 1500)
-
-    return () => clearTimeout(timer)
-  }, [])
-
-  const handleCreateWallet = () => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsWalletCreated(true)
-      setIsLoading(false)
-    }, 2000)
+  const handleCreateWallet = async () => {
+    try {
+      setIsCreatingWallet(true)
+      await login()
+    } catch (error) {
+      console.error('Failed to create wallet:', error)
+    } finally {
+      setIsCreatingWallet(false)
+    }
   }
 
   const handleAssetClick = (asset: any) => {
@@ -123,33 +117,79 @@ export default function WalletPage() {
     setShowReceiptModal(true)
   }
 
-  const handleWithdraw = (data: any) => {
-    console.log('Withdraw data:', data)
+  const handleWithdraw = async (data: any) => {
+    try {
+      const txHash = await sendTransaction(data.address, data.amount.toString())
+      
+      // Add transaction to history
+      const newTransaction = {
+        id: Date.now().toString(),
+        type: 'withdrawal' as const,
+        description: `Sent ${data.amount} ${mockAssets.find(a => a.id === data.assetId)?.symbol}`,
+        amount: -data.amount,
+        currency: 'USD',
+        date: 'Just now',
+        status: 'pending' as const,
+        hash: txHash
+      }
+      
+      setSelectedTransaction({
+        ...newTransaction,
+        asset: mockAssets.find(a => a.id === data.assetId),
+        network: networks.find(n => n.id === data.networkId),
+        timestamp: new Date().toISOString(),
+        confirmations: 0,
+        requiredConfirmations: 12,
+        toAddress: data.address,
+        usdValue: data.amount
+      })
+      
+      setShowReceiptModal(true)
+    } catch (error) {
+      console.error('Withdrawal failed:', error)
+      // Handle error - could show toast notification
+    }
   }
 
   // Wallet initialization screen
-  if (!isWalletCreated) {
+  if (!isConnected) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-6">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-3xl">💳</span>
+          <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+            <span className="text-4xl">🚀</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome to Your Smart Wallet</h1>
-          <p className="text-gray-600 max-w-md">
-            Create your Account Abstraction wallet for seamless transactions without gas fees.
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to Your Smart Wallet</h1>
+          <p className="text-gray-600 max-w-lg text-lg leading-relaxed">
+            Create your Account Abstraction wallet powered by Web3Auth for seamless, secure transactions.
           </p>
+          <div className="flex flex-col sm:flex-row gap-3 text-sm text-gray-500 mt-6">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+              No gas fees
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Social login
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+              Enhanced security
+            </div>
+          </div>
         </div>
         
-        {isLoading ? (
-          <div className="flex flex-col items-center space-y-3">
-            <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-600">Creating your wallet...</p>
+        {web3Loading || isCreatingWallet ? (
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-10 h-10 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-600 font-medium">
+              {isCreatingWallet ? 'Creating your wallet...' : 'Initializing...'}
+            </p>
           </div>
         ) : (
           <button
             onClick={handleCreateWallet}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-12 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           >
             Create Smart Wallet
           </button>
@@ -198,7 +238,7 @@ export default function WalletPage() {
       <DepositModal
         open={showDepositModal}
         onOpenChange={setShowDepositModal}
-        networks={mockNetworks}
+        networks={networks}
         selectedAsset={mockAssets[0]}
       />
 
@@ -206,7 +246,7 @@ export default function WalletPage() {
         open={showWithdrawModal}
         onOpenChange={setShowWithdrawModal}
         assets={mockAssets}
-        networks={mockNetworks}
+        networks={networks}
         onConfirmWithdraw={handleWithdraw}
       />
 
