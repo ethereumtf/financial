@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, CreditCard, TrendingUp, Users, DollarSign, Globe, Shield, Zap, ArrowRight, FileText, Calculator } from 'lucide-react'
+import { Building2, CreditCard, TrendingUp, Users, DollarSign, Globe, Shield, Zap, ArrowRight, FileText, Calculator, ExternalLink, Brain, Target, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -131,13 +131,61 @@ export default function BusinessPage() {
             Business Solutions
           </h1>
           <p className="text-muted-foreground mt-1">Enterprise-grade stablecoin financial services for businesses</p>
+          
+          {/* Prominent Business Platform Link */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  USD Financial Business
+                  <Badge className="bg-blue-100 text-blue-800 text-xs ml-2">
+                    <Brain className="h-3 w-3 mr-1" />
+                    AI-Powered
+                  </Badge>
+                </h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  Access our comprehensive corporate financial platform with AI-powered treasury management, real-time analytics, and automated compliance monitoring.
+                </p>
+                <div className="flex items-center gap-4 mt-2 text-xs text-blue-600">
+                  <div className="flex items-center gap-1">
+                    <Target className="h-3 w-3" />
+                    <span>Smart Treasury</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BarChart3 className="h-3 w-3" />
+                    <span>Real-time Analytics</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    <span>Automated Compliance</span>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+                onClick={() => window.open('/business/platform', '_blank')}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open Business Platform
+              </Button>
+            </div>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={() => window.open('/business/platform', '_blank')}
+          >
             <Building2 className="h-4 w-4 mr-2" />
-            Get Started
+            Launch Platform
           </Button>
-          <Button variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+          <Button 
+            variant="outline" 
+            className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            onClick={() => setSelectedCategory('all')}
+          >
             <FileText className="h-4 w-4 mr-2" />
             Request Demo
           </Button>
