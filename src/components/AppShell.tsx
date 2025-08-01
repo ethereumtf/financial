@@ -94,7 +94,7 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { user, signOut } = useAuthContext()
-  const [expandedItems, setExpandedItems] = React.useState<string[]>(['Accounts', 'Cards', 'Exchange', 'Invest'])
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([])
   const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false)
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false)
   
@@ -106,11 +106,18 @@ export function AppShell({ children }: AppShellProps) {
     router.push('/')
   }
 
-  const toggleExpanded = (itemName: string) => {
+  const toggleExpanded = (itemName: string, hasSubItems: boolean) => {
+    if (!hasSubItems) {
+      // For items without sub-items, close all sections
+      setExpandedItems([])
+      return
+    }
+    
+    // For items with sub-items, toggle just this section
     setExpandedItems(prev => 
-      prev.includes(itemName) 
-        ? prev.filter(name => name !== itemName)
-        : [...prev, itemName]
+      prev.includes(itemName)
+        ? prev.filter(name => name !== itemName) // Close this section if open
+        : [...prev, itemName] // Add this section to open sections
     )
   }
 
@@ -124,7 +131,7 @@ export function AppShell({ children }: AppShellProps) {
       return (
         <div className="space-y-1">
           <button
-            onClick={() => toggleExpanded(item.name)}
+            onClick={() => toggleExpanded(item.name, hasSubItems)}
             className={cn(
               "w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               isActive 
