@@ -6,8 +6,6 @@ import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, Dolla
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistModal } from '@/components/WaitlistModal'
-import { LoginModal } from '@/components/auth/LoginModal'
-import { SignupModal } from '@/components/auth/SignupModal'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function LandingPage() {
@@ -19,11 +17,8 @@ export default function LandingPage() {
     signOut,
     showLogin,
     showSignup,
-    hideAuth,
-    switchToSignup,
-    switchToLogin,
-    isLoginModalOpen,
-    isSignupModalOpen
+    isWalletConnected,
+    walletBalance
   } = useAuth()
 
   const handleJoinWaitlist = () => {
@@ -520,18 +515,7 @@ export default function LandingPage() {
         onClose={handleCloseWaitlistModal} 
       />
 
-      {/* Authentication Modals */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={hideAuth}
-        onSwitchToSignup={switchToSignup}
-      />
-      
-      <SignupModal
-        isOpen={isSignupModalOpen}
-        onClose={hideAuth}
-        onSwitchToLogin={switchToLogin}
-      />
+      {/* Web3Auth handles authentication modals automatically */}
     </div>
   )
 }

@@ -1,22 +1,32 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { validateUserCredentials, findUserByEmail, demoUsers } from '@/lib/demoUsers'
+import { unifiedAuth, UnifiedUser } from '@/lib/unifiedAuth'
 
+// Maintain backward compatibility with existing User interface
 export interface User {
   id: string
   email: string
   name: string
   image?: string
+  // Extended properties from UnifiedUser
+  walletAddress?: string
+  walletBalance?: string
+  accountType?: 'personal' | 'business' | 'premium'
 }
 
 export interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
-  signUp: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>
+  // Unified authentication methods - now using Web3Auth
+  signIn: () => Promise<{ success: boolean; error?: string }>
+  signUp: () => Promise<{ success: boolean; error?: string }> // Will redirect to same login
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }> // Will redirect to same login
   signOut: () => Promise<void>
+  // Additional wallet capabilities
+  isWalletConnected: boolean
+  walletBalance: string | null
+  sendTransaction: (to: string, amount: string) => Promise<string>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,109 +34,74 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isWalletConnected, setIsWalletConnected] = useState(false)
+  const [walletBalance, setWalletBalance] = useState<string | null>(null)
 
-  // Initialize auth state from localStorage
+  // Initialize auth state from unifiedAuth
   useEffect(() => {
-    const storedUser = localStorage.getItem('auth_user')
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (error) {
-        localStorage.removeItem('auth_user')
+    const updateAuthState = () => {
+      const authUser = unifiedAuth.getUser()
+      const isLoading = unifiedAuth.getIsLoading()
+      const walletConnected = unifiedAuth.getIsWalletConnected()
+      const balance = unifiedAuth.getWalletBalanceSync()
+
+      // Convert UnifiedUser to User interface for backward compatibility
+      if (authUser) {
+        const compatibleUser: User = {
+          id: authUser.id,
+          email: authUser.email,
+          name: authUser.name,
+          image: authUser.image,
+          walletAddress: authUser.walletAddress,
+          walletBalance: authUser.walletBalance,
+          accountType: authUser.accountType
+        }
+        setUser(compatibleUser)
+      } else {
+        setUser(null)
       }
+
+      setLoading(isLoading)
+      setIsWalletConnected(walletConnected)
+      setWalletBalance(balance)
     }
-    setLoading(false)
+
+    // Initial state update
+    updateAuthState()
+
+    // Subscribe to auth state changes
+    const unsubscribe = unifiedAuth.subscribe(updateAuthState)
+
+    return unsubscribe
   }, [])
 
-  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    setLoading(true)
+  // Unified sign-in using Web3Auth (supports both email and Google)
+  const signIn = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Simulate network delay for realistic UX
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const demoUser = validateUserCredentials(email, password)
-      
-      if (demoUser) {
-        const authenticatedUser: User = {
-          id: demoUser.id,
-          email: demoUser.email,
-          name: demoUser.name,
-          image: demoUser.image
-        }
-        setUser(authenticatedUser)
-        localStorage.setItem('auth_user', JSON.stringify(authenticatedUser))
-        return { success: true }
-      } else {
-        return { success: false, error: 'Invalid email or password' }
-      }
+      return await unifiedAuth.login()
     } catch (error) {
       console.error('Sign in error:', error)
-      return { success: false, error: 'Sign in failed' }
-    } finally {
-      setLoading(false)
+      return { success: false, error: 'Authentication failed' }
     }
   }
 
-  const signUp = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    setLoading(true)
-    try {
-      // Simulate network delay for realistic UX
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Check if user already exists
-      const existingUser = findUserByEmail(email)
-      if (existingUser) {
-        return { success: false, error: 'An account with this email already exists' }
-      }
-      
-      // Create new demo user
-      const newUser: User = {
-        id: 'demo-new-' + Date.now(),
-        email: email.toLowerCase(),
-        name,
-        image: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
-      }
-      
-      // Auto sign in after successful signup
-      setUser(newUser)
-      localStorage.setItem('auth_user', JSON.stringify(newUser))
-      return { success: true }
-    } catch (error) {
-      console.error('Sign up error:', error)
-      return { success: false, error: 'Signup failed' }
-    } finally {
-      setLoading(false)
-    }
+  // Sign-up redirects to same Web3Auth login (no separate signup needed)
+  const signUp = async (): Promise<{ success: boolean; error?: string }> => {
+    // Web3Auth handles both new user creation and existing user login
+    return await signIn()
   }
 
+  // Google sign-in redirects to same Web3Auth login (Google is an option)
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
-    setLoading(true)
-    try {
-      // Simulate Google OAuth flow
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // For demo purposes, create a realistic Google user
-      const googleUser: User = {
-        id: 'google_' + Date.now(),
-        email: 'demo.google.user@gmail.com',
-        name: 'Google Demo User',
-        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-      }
-      
-      setUser(googleUser)
-      localStorage.setItem('auth_user', JSON.stringify(googleUser))
-      return { success: true }
-    } catch (error) {
-      console.error('Google sign in error:', error)
-      return { success: false, error: 'Google sign-in failed' }
-    } finally {
-      setLoading(false)
-    }
+    return await signIn()
   }
 
   const signOut = async (): Promise<void> => {
-    setUser(null)
-    localStorage.removeItem('auth_user')
+    await unifiedAuth.logout()
+  }
+
+  const sendTransaction = async (to: string, amount: string): Promise<string> => {
+    return await unifiedAuth.sendTransaction(to, amount)
   }
 
   const value: AuthContextType = {
@@ -135,7 +110,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signInWithGoogle,
-    signOut
+    signOut,
+    isWalletConnected,
+    walletBalance,
+    sendTransaction
   }
 
   return (

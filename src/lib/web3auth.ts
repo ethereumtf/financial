@@ -40,19 +40,19 @@ const web3auth = new Web3Auth({
           },
           facebook: {
             name: "facebook",
-            showOnModal: true,
+            showOnModal: false,
           },
           twitter: {
             name: "twitter",
-            showOnModal: true,
+            showOnModal: false,
           },
           github: {
             name: "github",
-            showOnModal: true,
+            showOnModal: false,
           },
           discord: {
             name: "discord",
-            showOnModal: true,
+            showOnModal: false,
           },
         },
       },

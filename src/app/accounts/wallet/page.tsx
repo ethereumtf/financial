@@ -9,10 +9,10 @@ import { ActivityHistory } from '@/components/wallet/ActivityHistory'
 import { DepositModal } from '@/components/wallet/DepositModal'
 import { WithdrawModal } from '@/components/wallet/WithdrawModal'
 import { TransactionReceiptModal } from '@/components/wallet/TransactionReceiptModal'
-import { useWeb3Auth } from '@/contexts/Web3AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function WalletPage() {
-  const { isConnected, isLoading: web3Loading, login, address, balance, user, sendTransaction } = useWeb3Auth()
+  const { user, loading, isWalletConnected, walletBalance, sendTransaction, showLogin } = useAuth()
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
@@ -48,7 +48,7 @@ export default function WalletPage() {
       id: 'ethereum',
       name: 'Ethereum Mainnet',
       displayName: 'Ethereum',
-      address: address || '',
+      address: user?.walletAddress || '',
       minimumDeposit: 10,
       estimatedTime: '2-5 minutes',
       fee: 0.002,
@@ -58,7 +58,7 @@ export default function WalletPage() {
       id: 'polygon',
       name: 'Polygon',
       displayName: 'Polygon',
-      address: address || '',
+      address: user?.walletAddress || '',
       minimumDeposit: 1,
       estimatedTime: '1-2 minutes',
       fee: 0.001,
@@ -89,12 +89,12 @@ export default function WalletPage() {
     }
   ]
 
-  const totalBalance = mockAssets.reduce((sum, asset) => sum + asset.usdValue, 0) + parseFloat(balance || '0') * 3200 // Approximate ETH to USD
+  const totalBalance = mockAssets.reduce((sum, asset) => sum + asset.usdValue, 0) + parseFloat(walletBalance || '0') * 3200 // Approximate ETH to USD
 
   const handleCreateWallet = async () => {
     try {
       setIsCreatingWallet(true)
-      await login()
+      await showLogin()
     } catch (error) {
       console.error('Failed to create wallet:', error)
     } finally {
@@ -153,7 +153,7 @@ export default function WalletPage() {
   }
 
   // Wallet initialization screen
-  if (!isConnected) {
+  if (!isWalletConnected) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-6">
         <div className="text-center space-y-4">
@@ -180,7 +180,7 @@ export default function WalletPage() {
           </div>
         </div>
         
-        {web3Loading || isCreatingWallet ? (
+        {loading || isCreatingWallet ? (
           <div className="flex flex-col items-center space-y-4">
             <div className="w-10 h-10 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
             <p className="text-gray-600 font-medium">
