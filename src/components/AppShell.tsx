@@ -3,15 +3,17 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap, Wallet, DollarSign, Building2, Shield, ChevronDown, ChevronRight, Settings, LogOut, UserCircle, Bell, Star } from 'lucide-react'
+import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, BarChart3, Zap, Wallet, DollarSign, Building2, Shield, ChevronDown, ChevronRight, Settings, LogOut, UserCircle, Bell, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { ThemeGenerator } from '@/components/ThemeGenerator'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 import { findUserByEmail } from '@/lib/demoUsers'
+import { ProfileAccountModal } from '@/components/user/ProfileAccountModal'
+import { SettingsPreferencesModal } from '@/components/user/SettingsPreferencesModal'
 import { cn } from '@/lib/utils'
 
 const navigationItems = [
@@ -93,6 +95,8 @@ export function AppShell({ children }: AppShellProps) {
   const router = useRouter()
   const { user, signOut } = useAuthContext()
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['Accounts', 'Cards', 'Exchange', 'Invest'])
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false)
   
   // Get full user data from demo users if available
   const fullUserData = user ? findUserByEmail(user.email) : null
@@ -298,15 +302,21 @@ export function AppShell({ children }: AppShellProps) {
 
                   {/* Menu Items */}
                   <div className="py-1">
-                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer hover:bg-slate-50"
+                      onClick={() => setIsProfileModalOpen(true)}
+                    >
                       <UserCircle className="mr-3 h-4 w-4 text-slate-500" />
                       <span className="font-medium">Profile & Account</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer hover:bg-slate-50"
+                      onClick={() => setIsSettingsModalOpen(true)}
+                    >
                       <Settings className="mr-3 h-4 w-4 text-slate-500" />
-                      <span className="font-medium">Settings</span>
+                      <span className="font-medium">Settings & Preferences</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
                       <Bell className="mr-3 h-4 w-4 text-slate-500" />
                       <span className="font-medium">Notifications</span>
                     </DropdownMenuItem>
@@ -422,11 +432,17 @@ export function AppShell({ children }: AppShellProps) {
 
                   {/* Menu Items */}
                   <div className="py-1">
-                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer hover:bg-slate-50"
+                      onClick={() => setIsProfileModalOpen(true)}
+                    >
                       <UserCircle className="mr-3 h-4 w-4 text-slate-500" />
                       <span className="font-medium">Profile & Account</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer hover:bg-slate-50"
+                      onClick={() => setIsSettingsModalOpen(true)}
+                    >
                       <Settings className="mr-3 h-4 w-4 text-slate-500" />
                       <span className="font-medium">Settings & Preferences</span>
                     </DropdownMenuItem>
@@ -465,6 +481,18 @@ export function AppShell({ children }: AppShellProps) {
           </main>
         </div>
       </div>
+
+      {/* Profile & Account Modal */}
+      <ProfileAccountModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      {/* Settings & Preferences Modal */}
+      <SettingsPreferencesModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+      />
     </div>
   )
 }
