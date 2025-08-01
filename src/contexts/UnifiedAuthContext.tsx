@@ -1,10 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { Web3Auth } from "@web3auth/modal"
-import { IProvider } from '@web3auth/base'
-import { ethers } from 'ethers'
-import { createWeb3AuthInstance } from '@/lib/web3authClient'
+import type { Web3Auth } from "@web3auth/modal"
+import type { IProvider } from '@web3auth/base'
 
 export interface UnifiedUser {
   id: string
@@ -59,11 +57,79 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
   // Initialize Web3Auth on client side only
   useEffect(() => {
     const initWeb3Auth = async () => {
+      // Only run in browser environment
+      if (typeof window === 'undefined') {
+        setIsLoading(false)
+        return
+      }
+
       try {
         console.log('Initializing Web3Auth...')
-        const web3authInstance = createWeb3AuthInstance()
-        setWeb3auth(web3authInstance)
+        
+        // Dynamic import to prevent SSR issues
+        const { Web3Auth } = await import("@web3auth/modal")
+        const { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } = await import("@web3auth/base")
+        
+        const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4GjjGKm6bKJ_fJukNQjc9aYAM"
 
+        const web3authInstance = new Web3Auth({
+          clientId,
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+          chainConfig: {
+            chainNamespace: CHAIN_NAMESPACES.EIP155,
+            chainId: "0x1",
+            rpcTarget: "https://rpc.ankr.com/eth",
+            displayName: "Ethereum Mainnet",
+            blockExplorerUrl: "https://etherscan.io",
+            ticker: "ETH",
+            tickerName: "Ethereum",
+          },
+          uiConfig: {
+            appName: "USD Financial",
+            appUrl: "https://usdfinancial.co",
+            logoLight: "https://usdfinancial.co/logo.png",
+            logoDark: "https://usdfinancial.co/logo.png",
+            defaultLanguage: "en",
+            mode: "light",
+            theme: {
+              primary: "#10b981",
+            },
+            useLogoLoader: true,
+            modalConfig: {
+              "openlogin": {
+                label: "openlogin",
+                loginMethods: {
+                  email_passwordless: {
+                    name: "email_passwordless",
+                    showOnModal: true,
+                  },
+                  google: {
+                    name: "google", 
+                    showOnModal: true,
+                  },
+                  facebook: {
+                    name: "facebook",
+                    showOnModal: false,
+                  },
+                  twitter: {
+                    name: "twitter",
+                    showOnModal: false,
+                  },
+                  github: {
+                    name: "github",
+                    showOnModal: false,
+                  },
+                  discord: {
+                    name: "discord",
+                    showOnModal: false,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        setWeb3auth(web3authInstance)
         await web3authInstance.initModal()
         console.log('Web3Auth initialized successfully')
         setIsInitialized(true)
@@ -135,6 +201,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
 
   const getWalletAddress = async (provider: IProvider): Promise<string | null> => {
     try {
+      const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const signer = await ethersProvider.getSigner()
       return await signer.getAddress()
@@ -148,6 +215,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
     if (!address) return '0'
     
     try {
+      const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(address)
       return ethers.formatEther(balance)
@@ -207,6 +275,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
     if (!provider) throw new Error('Wallet not connected')
     
     try {
+      const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const signer = await ethersProvider.getSigner()
       
