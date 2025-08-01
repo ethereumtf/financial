@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, DollarSign, BarChart3, LogOut, ChevronDown } from 'lucide-react'
+import { ArrowRight, Shield, Zap, TrendingUp, Sparkles, Star, CheckCircle, DollarSign, BarChart3, LogOut, ChevronDown, CreditCard, Send, Repeat, ShieldCheck, Globe, KeyRound, Lock, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { WaitlistModal } from '@/components/WaitlistModal'
@@ -342,6 +342,122 @@ export default function LandingPage() {
                 Utilize our stablecoin debit card for everyday purchases, or transfer your funds to various supported blockchains with minimal fees. Experience flexibility and control over your digital finances.
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Explore Our Services Section */}
+      <div className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">A Universe of Financial Services</h2>
+            <p className="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">Go beyond traditional banking with a suite of tools designed for the digital economy.</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="text-center p-8 border-2 border-transparent hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+              <CardContent>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <CreditCard className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-slate-900">Spend & Use</h3>
+                <p className="text-slate-600">Use your stablecoins for daily purchases with the USD Financial Card. Accepted globally, online and in-store.</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center p-8 border-2 border-transparent hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+              <CardContent>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Send className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-slate-900">Transfer & Remit</h3>
+                <p className="text-slate-600">Move funds across the globe in minutes, not days. Low fees and near-instant settlement.</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center p-8 border-2 border-transparent hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+              <CardContent>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Repeat className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-slate-900">Swap & Bridge</h3>
+                <p className="text-slate-600">Seamlessly exchange digital assets and move them across different blockchain networks with ease.</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center p-8 border-2 border-transparent hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
+              <CardContent>
+                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-slate-900">Access DeFi</h3>
+                <p className="text-slate-600">Explore opportunities in the decentralized finance ecosystem. Put your stablecoins to work in a secure environment.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* The Stablecoin Advantage Section */}
+      <div className="py-24 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">Why Stablecoins? The Future of Money is Here.</h2>
+            <p className="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">Discover the power of digital dollars and how they create a more accessible and efficient financial world.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <ShieldCheck className="h-12 w-12 mx-auto mb-4 text-emerald-600" />
+              <h3 className="text-xl font-semibold mb-2 text-slate-900">Stability in a Digital World</h3>
+              <p className="text-slate-600">Enjoy the benefits of digital assets without the volatility. Our platform is built on fully-backed stablecoins, pegged 1:1 to the US Dollar.</p>
+            </div>
+            <div className="text-center">
+              <Globe className="h-12 w-12 mx-auto mb-4 text-emerald-600" />
+              <h3 className="text-xl font-semibold mb-2 text-slate-900">Global, Borderless Access</h3>
+              <p className="text-slate-600">Financial services for everyone, everywhere. No bank account needed. Your digital wallet is your passport to the global economy.</p>
+            </div>
+            <div className="text-center">
+              <Zap className="h-12 w-12 mx-auto mb-4 text-emerald-600" />
+              <h3 className="text-xl font-semibold mb-2 text-slate-900">Unmatched Efficiency</h3>
+              <p className="text-slate-600">Experience transactions that are faster, cheaper, and more transparent than traditional banking systems. Welcome to the new speed of money.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Security You Can Trust Section */}
+      <div className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">Your Security is Our Foundation</h2>
+            <p className="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">We are committed to the highest standards of security to protect your assets and your data.</p>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <ul className="space-y-8">
+              <li className="flex items-start gap-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                  <KeyRound className="w-7 h-7 text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-800">You're in Control</h4>
+                  <p className="text-slate-600 mt-1">With our non-custodial architecture, you always have control over your funds. Not your keys, not your crypto? We agree.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-800">Bank-Grade Security</h4>
+                  <p className="text-slate-600 mt-1">We employ multi-layered security measures, including encryption and secure protocols, to safeguard your account.</p>
+                </div>
+              </li>
+              <li className="flex items-start gap-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+                  <BadgeCheck className="w-7 h-7 text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-slate-800">Audited & Verified</h4>
+                  <p className="text-slate-600 mt-1">We build on and integrate with audited smart contracts and battle-tested protocols to ensure the integrity of our ecosystem.</p>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
