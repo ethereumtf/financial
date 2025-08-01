@@ -2,14 +2,16 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap, Wallet, DollarSign, Building2, Shield, ChevronDown, ChevronRight } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Menu, Home, CreditCard, TrendingUp, ArrowLeftRight, Receipt, User, BarChart3, Zap, Wallet, DollarSign, Building2, Shield, ChevronDown, ChevronRight, Settings, LogOut, UserCircle, Bell, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
+import { Badge } from '@/components/ui/badge'
 import { ThemeGenerator } from '@/components/ThemeGenerator'
-import { mockUser } from '@/lib/data'
+import { useAuthContext } from '@/components/providers/AuthProvider'
+import { findUserByEmail } from '@/lib/demoUsers'
 import { cn } from '@/lib/utils'
 
 const navigationItems = [
@@ -88,7 +90,17 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, signOut } = useAuthContext()
   const [expandedItems, setExpandedItems] = React.useState<string[]>(['Accounts', 'Cards', 'Exchange', 'Invest'])
+  
+  // Get full user data from demo users if available
+  const fullUserData = user ? findUserByEmail(user.email) : null
+  
+  const handleLogout = async () => {
+    await signOut()
+    router.push('/')
+  }
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems(prev => 
@@ -224,46 +236,227 @@ export function AppShell({ children }: AppShellProps) {
                 <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
               </Link>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
-                    <AvatarFallback>{mockUser.initials}</AvatarFallback>
-                  </Avatar>
-                  <span className="sr-only">Toggle user menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-emerald-200 hover:border-emerald-300 transition-all duration-200">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold">
+                        {user.name?.charAt(0) || user.email.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {fullUserData?.accountType === 'premium' && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <Star className="h-2.5 w-2.5 text-white fill-current" />
+                      </div>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 p-0" forceMount>
+                  {/* User Profile Header */}
+                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b">
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold text-lg">
+                        {user.name?.charAt(0) || user.email.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
+                        {fullUserData?.accountType === 'premium' && (
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs border-0">
+                            Premium
+                          </Badge>
+                        )}
+                        {fullUserData?.accountType === 'business' && (
+                          <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs border-0">
+                            Business
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-600 truncate">{user.email}</p>
+                      {fullUserData && (
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="text-xs">
+                            <span className="text-slate-500">Balance:</span>
+                            <span className="font-semibold text-emerald-600 ml-1">
+                              ${fullUserData.balance.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-slate-500">Gain:</span>
+                            <span className="font-semibold text-green-600 ml-1">
+                              +{fullUserData.portfolio.monthlyGain}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-1">
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                      <UserCircle className="mr-3 h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Profile & Account</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                      <Settings className="mr-3 h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer">
+                      <Bell className="mr-3 h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Notifications</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <span className="font-medium">Sign Out</span>
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </header>
 
           {/* Desktop Header with User Menu */}
           <header className="hidden md:flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
             <div className="w-full flex-1" />
             <ThemeGenerator />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
-                    <AvatarFallback>{mockUser.initials}</AvatarFallback>
-                  </Avatar>
-                  <span className="sr-only">Toggle user menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-11 w-auto rounded-full border-2 border-emerald-200 hover:border-emerald-300 transition-all duration-200 px-3 gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold">
+                        {user.name?.charAt(0) || user.email.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start min-w-0">
+                      <span className="text-sm font-medium text-slate-900 truncate max-w-[120px]">
+                        {user.name}
+                      </span>
+                      {fullUserData && (
+                        <span className="text-xs text-emerald-600 font-semibold">
+                          ${fullUserData.balance.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    {fullUserData?.accountType === 'premium' && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <Star className="h-2.5 w-2.5 text-white fill-current" />
+                      </div>
+                    )}
+                    {fullUserData?.accountType === 'business' && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                        <Building2 className="h-2.5 w-2.5 text-white" />
+                      </div>
+                    )}
+                    <ChevronDown className="h-4 w-4 text-slate-400 flex-shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80 p-0" forceMount>
+                  {/* User Profile Header */}
+                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b">
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                      <AvatarImage src={user.image} alt={user.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white font-semibold text-lg">
+                        {user.name?.charAt(0) || user.email.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
+                        {fullUserData?.accountType === 'premium' && (
+                          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs border-0">
+                            Premium
+                          </Badge>
+                        )}
+                        {fullUserData?.accountType === 'business' && (
+                          <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs border-0">
+                            Business
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-600 truncate">{user.email}</p>
+                      {fullUserData && (
+                        <div className="flex items-center gap-4 mt-2">
+                          <div className="text-xs">
+                            <span className="text-slate-500">Balance:</span>
+                            <span className="font-semibold text-emerald-600 ml-1">
+                              ${fullUserData.balance.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-slate-500">Monthly Gain:</span>
+                            <span className="font-semibold text-green-600 ml-1">
+                              +{fullUserData.portfolio.monthlyGain}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {fullUserData && (
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="text-xs">
+                            <span className="text-slate-500">Risk Score:</span>
+                            <span className="font-semibold text-blue-600 ml-1">
+                              {fullUserData.portfolio.riskScore}/100
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <span className="text-slate-500">Currency:</span>
+                            <span className="font-semibold text-slate-700 ml-1">
+                              {fullUserData.preferences.currency}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-1">
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                      <UserCircle className="mr-3 h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Profile & Account</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                      <Settings className="mr-3 h-4 w-4 text-slate-500" />
+                      <span className="font-medium">Settings & Preferences</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                      <Bell className="mr-3 h-4 w-4 text-slate-500" />
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-medium">Notifications</span>
+                        {fullUserData?.preferences.notifications && (
+                          <Badge variant="secondary" className="text-xs">On</Badge>
+                        )}
+                      </div>
+                    </DropdownMenuItem>
+                    {fullUserData?.accountType === 'business' && (
+                      <DropdownMenuItem className="px-4 py-3 cursor-pointer hover:bg-slate-50">
+                        <Building2 className="mr-3 h-4 w-4 text-slate-500" />
+                        <span className="font-medium">Business Platform</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="px-4 py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <span className="font-medium">Sign Out</span>
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </header>
 
           {/* Main Content */}
