@@ -196,16 +196,19 @@ export function AppShell({ children }: AppShellProps) {
       <div className="grid min-h-screen md:grid-cols-[280px_1fr]">
         {/* Desktop Sidebar */}
         <aside className="hidden border-r bg-muted/40 md:block">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <div className="flex h-full flex-col">
+            {/* Fixed height header */}
+            <div className="h-14 flex-shrink-0 border-b flex items-center px-4 lg:h-[60px] lg:px-6">
               <Link href="/" className="flex items-center gap-2 font-semibold">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">$</span>
                 </div>
                 <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
               </Link>
             </div>
-            <div className="flex-1">
+            
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
               <nav className="grid gap-2 px-2 py-4">
                 {navigationItems.map((item) => (
                   <NavLink key={item.href || item.name} item={item} />
