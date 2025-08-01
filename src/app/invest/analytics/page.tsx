@@ -185,6 +185,7 @@ const riskMetrics: RiskMetric[] = [
 export default function PortfolioAnalyticsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('1Y')
   const [selectedTab, setSelectedTab] = useState('overview')
+  const [isExporting, setIsExporting] = useState(false)
 
   const totalPortfolioValue = portfolioHoldings.reduce((sum, holding) => sum + holding.value, 0)
   const totalInvested = portfolioHoldings.reduce((sum, holding) => sum + holding.invested, 0)
@@ -192,6 +193,35 @@ export default function PortfolioAnalyticsPage() {
   const totalReturnsPercent = totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
 
   const currentMetrics = performanceData.find(p => p.period === selectedPeriod) || performanceData[3]
+
+  const handleExportData = async () => {
+    setIsExporting(true)
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Create mock CSV data
+      const csvData = [
+        ['Asset', 'Value', 'Returns', 'Allocation'],
+        ...portfolioHoldings.map(h => [h.name, h.value, h.returns, h.allocation])
+      ]
+      
+      const csvContent = csvData.map(row => row.join(',')).join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `portfolio-analytics-${selectedPeriod}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Export failed. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const getRiskColor = (status: string) => {
     switch (status) {
@@ -234,9 +264,13 @@ export default function PortfolioAnalyticsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={handleExportData}
+            disabled={isExporting}
+          >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {isExporting ? 'Exporting...' : 'Export'}
           </Button>
         </div>
       </div>

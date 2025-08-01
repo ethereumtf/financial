@@ -133,17 +133,77 @@ const investmentStrategies: InvestmentStrategy[] = [
 
 export default function AutoInvestPage() {
   const [selectedStrategy, setSelectedStrategy] = useState<InvestmentStrategy | null>(null)
+  const [plans, setPlans] = useState<AutoInvestPlan[]>(existingPlans)
   const [newPlan, setNewPlan] = useState({
     amount: '',
     frequency: 'monthly',
     strategy: '',
     currency: 'USDC' as StablecoinSymbol
   })
+  const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
 
-  const totalInvested = existingPlans.reduce((sum, plan) => sum + plan.totalInvested, 0)
-  const totalCurrentValue = existingPlans.reduce((sum, plan) => sum + plan.currentValue, 0)
+  const totalInvested = plans.reduce((sum, plan) => sum + plan.totalInvested, 0)
+  const totalCurrentValue = plans.reduce((sum, plan) => sum + plan.currentValue, 0)
   const totalReturns = totalCurrentValue - totalInvested
   const totalReturnsPercent = totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
+
+  const handleCreatePlan = async () => {
+    if (!newPlan.amount || !newPlan.strategy) return
+    
+    const strategy = investmentStrategies.find(s => s.id === newPlan.strategy)
+    if (!strategy) return
+
+    setIsCreating(true)
+    try {
+      const newAutoPlan: AutoInvestPlan = {
+        id: (plans.length + 1).toString(),
+        name: `${strategy.name} Plan`,
+        amount: parseFloat(newPlan.amount),
+        frequency: newPlan.frequency as 'weekly' | 'monthly' | 'quarterly',
+        nextInvestment: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        totalInvested: 0,
+        currentValue: 0,
+        returns: 0,
+        returnsPercent: 0,
+        isActive: true,
+        strategy: strategy.name,
+        riskLevel: strategy.riskLevel,
+        allocation: strategy.allocation.map((alloc, index) => ({
+          asset: alloc.asset,
+          percentage: alloc.percentage,
+          color: ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500'][index % 4]
+        })),
+        currency: newPlan.currency
+      }
+
+      setPlans(prev => [...prev, newAutoPlan])
+      setNewPlan({ amount: '', frequency: 'monthly', strategy: '', currency: 'USDC' })
+      setSelectedStrategy(null)
+      
+    } catch (error) {
+      console.error('Failed to create plan:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handleTogglePlan = async (planId: string) => {
+    setIsUpdating(true)
+    try {
+      setPlans(prev => prev.map(plan => 
+        plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan
+      ))
+    } catch (error) {
+      console.error('Failed to toggle plan:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCreateNewPlan = () => {
+    document.getElementById('create-tab')?.click()
+  }
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -182,7 +242,10 @@ export default function AutoInvestPage() {
           <p className="text-muted-foreground mt-1">Automate your investments with dollar-cost averaging</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={handleCreateNewPlan}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create New Plan
           </Button>
@@ -238,7 +301,7 @@ export default function AutoInvestPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{existingPlans.filter(p => p.isActive).length}</div>
+            <div className="text-2xl font-bold">{plans.filter(p => p.isActive).length}</div>
             <p className="text-sm text-muted-foreground">Running automatically</p>
           </CardContent>
         </Card>
@@ -261,11 +324,11 @@ export default function AutoInvestPage() {
               <Tabs defaultValue="plans">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="plans">My Plans</TabsTrigger>
-                  <TabsTrigger value="create">Create New</TabsTrigger>
+                  <TabsTrigger value="create" id="create-tab">Create New</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="plans" className="space-y-4 mt-6">
-                  {existingPlans.map((plan) => (
+                  {plans.map((plan) => (
                     <div key={plan.id} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -322,10 +385,19 @@ export default function AutoInvestPage() {
                           Returns: {plan.returnsPercent.toFixed(1)}% • Total Invested: {formatCurrency(plan.totalInvested)}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => alert(`Settings for ${plan.name} would open here`)}
+                          >
                             <Settings className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleTogglePlan(plan.id)}
+                            disabled={isUpdating}
+                          >
                             {plan.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                           </Button>
                         </div>
@@ -421,10 +493,11 @@ export default function AutoInvestPage() {
 
                     <Button 
                       className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                      disabled={!newPlan.amount || !newPlan.strategy}
+                      disabled={!newPlan.amount || !newPlan.strategy || isCreating}
+                      onClick={handleCreatePlan}
                     >
                       <Zap className="h-4 w-4 mr-2" />
-                      Create Auto-Invest Plan
+                      {isCreating ? 'Creating Plan...' : 'Create Auto-Invest Plan'}
                     </Button>
                   </div>
                 </TabsContent>

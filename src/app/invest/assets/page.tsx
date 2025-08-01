@@ -153,6 +153,9 @@ export default function TokenizedAssetsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState<string>('marketCap')
   const [selectedAsset, setSelectedAsset] = useState<TokenizedAsset | null>(null)
+  const [isInvesting, setIsInvesting] = useState(false)
+  const [investmentAmount, setInvestmentAmount] = useState('')
+  const [investmentCurrency, setInvestmentCurrency] = useState<StablecoinSymbol>('USDC')
 
   const categories = ['all', 'Government Bonds', 'Real Estate', 'Corporate Bonds', 'Precious Metals', 'Equity Index', 'Infrastructure']
   
@@ -193,6 +196,36 @@ export default function TokenizedAssetsPage() {
   const totalMarketCap = tokenizedAssets.reduce((sum, asset) => sum + asset.marketCap, 0)
   const averageAPY = tokenizedAssets.reduce((sum, asset) => sum + asset.apy, 0) / tokenizedAssets.length
 
+  const handleStartInvesting = () => {
+    if (selectedAsset) {
+      document.getElementById('invest-button')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      alert('Please select an asset to start investing')
+    }
+  }
+
+  const handleInvestInAsset = async (asset: TokenizedAsset) => {
+    if (!investmentAmount || parseFloat(investmentAmount) < asset.minInvestment) {
+      alert(`Minimum investment is ${formatCurrency(asset.minInvestment)}`)
+      return
+    }
+
+    setIsInvesting(true)
+    try {
+      // Simulate investment API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      alert(`Successfully invested ${formatCurrency(parseFloat(investmentAmount))} ${investmentCurrency} in ${asset.name}!`)
+      setInvestmentAmount('')
+      
+    } catch (error) {
+      console.error('Investment failed:', error)
+      alert('Investment failed. Please try again.')
+    } finally {
+      setIsInvesting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -203,7 +236,10 @@ export default function TokenizedAssetsPage() {
           <p className="text-muted-foreground mt-1">Invest in real-world assets through blockchain technology</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={handleStartInvesting}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Start Investing
           </Button>
@@ -434,10 +470,39 @@ export default function TokenizedAssetsPage() {
                     </div>
                   </div>
 
-                  <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Invest in {selectedAsset.symbol}
-                  </Button>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Investment Amount</label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder={`Min: ${formatCurrency(selectedAsset.minInvestment)}`}
+                          value={investmentAmount}
+                          onChange={(e) => setInvestmentAmount(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Select value={investmentCurrency} onValueChange={(value: StablecoinSymbol) => setInvestmentCurrency(value)}>
+                          <SelectTrigger className="w-20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USDC">USDC</SelectItem>
+                            <SelectItem value="USDT">USDT</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      id="invest-button"
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                      onClick={() => handleInvestInAsset(selectedAsset)}
+                      disabled={isInvesting || !investmentAmount || parseFloat(investmentAmount) < selectedAsset.minInvestment}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {isInvesting ? 'Investing...' : `Invest in ${selectedAsset.symbol}`}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -460,13 +525,14 @@ export default function TokenizedAssetsPage() {
                       <div className="text-xs text-muted-foreground">Minimum investment</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <ExternalLink className="h-4 w-4 text-emerald-600" />
-                    <div>
-                      <div className="text-sm font-medium">Learn More</div>
-                      <div className="text-xs text-muted-foreground">View asset documentation</div>
-                    </div>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-sm"
+                    onClick={() => alert(`Documentation for ${selectedAsset.name} would open here`)}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Learn More
+                  </Button>
                 </CardContent>
               </Card>
             </>

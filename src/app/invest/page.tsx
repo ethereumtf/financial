@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { TrendingUp, Target, BarChart3, DollarSign, Plus, Eye, PieChart, Calendar, Shield } from 'lucide-react'
+import { TrendingUp, Target, BarChart3, DollarSign, Plus, Eye, PieChart, Calendar, Shield, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -144,10 +144,14 @@ const tokenizedAssets: TokenizedAsset[] = [
 
 export default function InvestPage() {
   const [selectedTab, setSelectedTab] = useState('overview')
+  const [investments, setInvestments] = useState<Investment[]>(portfolioData)
+  const [isInvesting, setIsInvesting] = useState(false)
+  const [selectedAsset, setSelectedAsset] = useState<TokenizedAsset | null>(null)
+  const [investmentAmount, setInvestmentAmount] = useState('')
   
-  const totalPortfolioValue = portfolioData.reduce((sum, investment) => sum + investment.currentValue, 0)
-  const totalInvested = portfolioData.reduce((sum, investment) => sum + investment.investedAmount, 0)
-  const totalReturns = portfolioData.reduce((sum, investment) => sum + investment.returns, 0)
+  const totalPortfolioValue = investments.reduce((sum, investment) => sum + investment.currentValue, 0)
+  const totalInvested = investments.reduce((sum, investment) => sum + investment.investedAmount, 0)
+  const totalReturns = investments.reduce((sum, investment) => sum + investment.returns, 0)
   const totalReturnsPercent = totalInvested > 0 ? (totalReturns / totalInvested) * 100 : 0
 
   const getRiskColor = (risk: string) => {
@@ -166,6 +170,52 @@ export default function InvestPage() {
     return num.toString()
   }
 
+  const handleNewInvestment = () => {
+    window.location.href = '/invest/assets'
+  }
+
+  const handleViewAll = () => {
+    window.location.href = '/invest/analytics'
+  }
+
+  const handleInvestNow = async (assetId: string) => {
+    const asset = tokenizedAssets.find(a => a.id === assetId)
+    if (!asset) return
+    
+    setSelectedAsset(asset)
+    setIsInvesting(true)
+    
+    // Simulate investment process
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      alert(`Successfully invested in ${asset.name}!`)
+    } catch (error) {
+      console.error('Investment failed:', error)
+    } finally {
+      setIsInvesting(false)
+      setSelectedAsset(null)
+    }
+  }
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'auto-invest':
+        window.location.href = '/invest/auto'
+        break
+      case 'rebalance':
+        alert('Portfolio rebalancing initiated')
+        break
+      case 'report':
+        window.location.href = '/invest/analytics'
+        break
+      case 'schedule':
+        alert('Investment scheduling feature would open here')
+        break
+      default:
+        break
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -176,11 +226,18 @@ export default function InvestPage() {
           <p className="text-muted-foreground mt-1">Build wealth with tokenized assets and automated investing</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={handleNewInvestment}
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Investment
           </Button>
-          <Button variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+          <Button 
+            variant="outline" 
+            className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            onClick={handleViewAll}
+          >
             <Eye className="h-4 w-4 mr-2" />
             View All
           </Button>
@@ -224,7 +281,7 @@ export default function InvestPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(portfolioData.reduce((sum, inv) => sum + (inv.apy || 0) * inv.allocation, 0) / 100).toFixed(1)}%
+              {(investments.reduce((sum, inv) => sum + (inv.apy || 0) * inv.allocation, 0) / 100).toFixed(1)}%
             </div>
             <p className="text-sm text-muted-foreground">Weighted average</p>
           </CardContent>
@@ -238,7 +295,7 @@ export default function InvestPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{portfolioData.length}</div>
+            <div className="text-2xl font-bold">{investments.length}</div>
             <p className="text-sm text-muted-foreground">Active positions</p>
           </CardContent>
         </Card>
@@ -266,7 +323,7 @@ export default function InvestPage() {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4 mt-6">
-                  {portfolioData.map((investment) => (
+                  {investments.map((investment) => (
                     <div key={investment.id} className="p-4 border rounded-lg hover:bg-emerald-50 transition-colors">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -349,8 +406,13 @@ export default function InvestPage() {
                         </div>
                       </div>
                       
-                      <Button size="sm" className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-teal-500">
-                        Invest Now
+                      <Button 
+                        size="sm" 
+                        className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-teal-500"
+                        onClick={() => handleInvestNow(asset.id)}
+                        disabled={isInvesting && selectedAsset?.id === asset.id}
+                      >
+                        {isInvesting && selectedAsset?.id === asset.id ? 'Investing...' : 'Invest Now'}
                       </Button>
                     </div>
                   ))}
@@ -393,7 +455,7 @@ export default function InvestPage() {
 
                   <div className="grid gap-4">
                     <h4 className="font-medium">Asset Allocation</h4>
-                    {portfolioData.map((investment) => (
+                    {investments.map((investment) => (
                       <div key={investment.id} className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>{investment.name}:</span>
@@ -455,19 +517,35 @@ export default function InvestPage() {
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleQuickAction('auto-invest')}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Auto-Invest Setup
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleQuickAction('rebalance')}
+              >
                 <Target className="h-4 w-4 mr-2" />
                 Rebalance Portfolio
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleQuickAction('report')}
+              >
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Performance Report
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleQuickAction('schedule')}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 Schedule Investment
               </Button>
@@ -477,8 +555,11 @@ export default function InvestPage() {
       </div>
 
       {/* Investment Categories */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-emerald-200">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card 
+          className="border-emerald-200 cursor-pointer hover:bg-emerald-50 transition-colors"
+          onClick={() => window.location.href = '/invest/assets'}
+        >
           <CardContent className="flex items-center p-6">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mr-4">
               <DollarSign className="h-6 w-6 text-emerald-600" />
@@ -490,7 +571,10 @@ export default function InvestPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-200">
+        <Card 
+          className="border-emerald-200 cursor-pointer hover:bg-emerald-50 transition-colors"
+          onClick={() => window.location.href = '/invest/auto'}
+        >
           <CardContent className="flex items-center p-6">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mr-4">
               <Target className="h-6 w-6 text-emerald-600" />
@@ -502,14 +586,32 @@ export default function InvestPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-200">
+        <Card 
+          className="border-emerald-200 cursor-pointer hover:bg-emerald-50 transition-colors"
+          onClick={() => window.location.href = '/invest/staking'}
+        >
           <CardContent className="flex items-center p-6">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mr-4">
-              <PieChart className="h-6 w-6 text-emerald-600" />
+              <Zap className="h-6 w-6 text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold">Managed Portfolios</h3>
-              <p className="text-sm text-muted-foreground">Professional asset management</p>
+              <h3 className="font-semibold">Staking</h3>
+              <p className="text-sm text-muted-foreground">Earn yield on stablecoins</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="border-emerald-200 cursor-pointer hover:bg-emerald-50 transition-colors"
+          onClick={() => window.location.href = '/invest/defi'}
+        >
+          <CardContent className="flex items-center p-6">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mr-4">
+              <Target className="h-6 w-6 text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold">DeFi Yield Farming</h3>
+              <p className="text-sm text-muted-foreground">Maximize returns through DeFi</p>
             </div>
           </CardContent>
         </Card>

@@ -55,6 +55,8 @@ const navigationItems = [
       { name: 'Portfolio Overview', href: '/invest', icon: TrendingUp },
       { name: 'Tokenized Assets', href: '/invest/assets', icon: BarChart3 },
       { name: 'Auto-Invest', href: '/invest/auto', icon: Zap },
+      { name: 'Staking', href: '/invest/staking', icon: Zap },
+      { name: 'DeFi Yield Farming', href: '/invest/defi', icon: TrendingUp },
       { name: 'Portfolio Analytics', href: '/invest/analytics', icon: BarChart3 }
     ]
   },
