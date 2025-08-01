@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { TrendingUp, Target, BarChart3, DollarSign, Plus, Eye, PieChart, Calendar, Shield, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -217,7 +218,8 @@ export default function InvestPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -616,6 +618,7 @@ export default function InvestPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

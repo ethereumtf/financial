@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { validateUserCredentials, findUserByEmail, demoUsers } from '@/lib/demoUsers'
 
 export interface User {
   id: string
@@ -40,28 +41,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     try {
-      const response = await fetch('/.netlify/functions/signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.user) {
+      // Simulate network delay for realistic UX
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      const demoUser = validateUserCredentials(email, password)
+      
+      if (demoUser) {
         const authenticatedUser: User = {
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.name,
-          image: data.user.image
+          id: demoUser.id,
+          email: demoUser.email,
+          name: demoUser.name,
+          image: demoUser.image
         }
         setUser(authenticatedUser)
         localStorage.setItem('auth_user', JSON.stringify(authenticatedUser))
         return { success: true }
       } else {
-        return { success: false, error: data.error || 'Invalid credentials' }
+        return { success: false, error: 'Invalid email or password' }
       }
     } catch (error) {
       console.error('Sign in error:', error)
@@ -74,23 +70,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true)
     try {
-      const response = await fetch('/.netlify/functions/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.user) {
-        // Auto sign in after successful signup
-        return await signIn(email, password)
-      } else {
-        return { success: false, error: data.error || 'Signup failed' }
+      // Simulate network delay for realistic UX
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      // Check if user already exists
+      const existingUser = findUserByEmail(email)
+      if (existingUser) {
+        return { success: false, error: 'An account with this email already exists' }
       }
+      
+      // Create new demo user
+      const newUser: User = {
+        id: 'demo-new-' + Date.now(),
+        email: email.toLowerCase(),
+        name,
+        image: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face`
+      }
+      
+      // Auto sign in after successful signup
+      setUser(newUser)
+      localStorage.setItem('auth_user', JSON.stringify(newUser))
+      return { success: true }
     } catch (error) {
+      console.error('Sign up error:', error)
       return { success: false, error: 'Signup failed' }
     } finally {
       setLoading(false)
@@ -98,18 +100,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
-    // For demo purposes, create a mock Google user
-    // In production, this would integrate with Google OAuth
-    const googleUser: User = {
-      id: 'google_' + Date.now(),
-      email: 'user@gmail.com',
-      name: 'Google User',
-      image: 'https://via.placeholder.com/40'
+    setLoading(true)
+    try {
+      // Simulate Google OAuth flow
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // For demo purposes, create a realistic Google user
+      const googleUser: User = {
+        id: 'google_' + Date.now(),
+        email: 'demo.google.user@gmail.com',
+        name: 'Google Demo User',
+        image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      }
+      
+      setUser(googleUser)
+      localStorage.setItem('auth_user', JSON.stringify(googleUser))
+      return { success: true }
+    } catch (error) {
+      console.error('Google sign in error:', error)
+      return { success: false, error: 'Google sign-in failed' }
+    } finally {
+      setLoading(false)
     }
-    
-    setUser(googleUser)
-    localStorage.setItem('auth_user', JSON.stringify(googleUser))
-    return { success: true }
   }
 
   const signOut = async (): Promise<void> => {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Shield, DollarSign, TrendingDown, CheckCircle2, Zap, Clock, Brain, Target, Plus, FileText, Activity, Settings, Eye, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -359,7 +360,8 @@ export default function InsurancePage() {
   const totalPremiums = [...activePolicies, ...policies].reduce((sum, policy) => sum + policy.premium, 0)
 
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -1033,6 +1035,7 @@ export default function InsurancePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

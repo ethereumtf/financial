@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { Building2, DollarSign, TrendingUp, Users, Brain, Target, BarChart3, Shield, Zap, Clock, Activity, PieChart, ArrowUpDown, Settings, Bell, ChevronDown, Plus, Eye, FileText, Calculator, Globe, CreditCard, AlertTriangle, CheckCircle2, Search, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -246,7 +247,8 @@ export default function BusinessPlatformPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <AuthGuard>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Business Platform Header */}
       <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white">
         <div className="container mx-auto px-6 py-6">
@@ -1023,6 +1025,7 @@ export default function BusinessPlatformPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

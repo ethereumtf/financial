@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { PortfolioHeader } from '@/components/wallet/PortfolioHeader'
 import { PrimaryActions } from '@/components/wallet/PrimaryActions'
 import { AssetList } from '@/components/wallet/AssetList'
@@ -199,7 +200,8 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="space-y-8 pb-8 bg-gray-50 min-h-screen -m-6 p-6">
+    <AuthGuard>
+      <div className="space-y-8 pb-8 bg-gray-50 min-h-screen -m-6 p-6">
       <div className="flex items-center justify-between pt-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
@@ -257,6 +259,7 @@ export default function WalletPage() {
           transaction={selectedTransaction}
         />
       )}
-    </div>
+      </div>
+    </AuthGuard>
   )
 }

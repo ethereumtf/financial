@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { X, Mail, Lock, Eye, EyeOff, Loader2, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useAuthContext } from '@/components/providers/AuthProvider'
+import { DEMO_CREDENTIALS } from '@/lib/demoUsers'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -236,6 +237,45 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
             </svg>
             Continue with Google
           </Button>
+
+          {/* Demo Credentials */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-emerald-700">
+              <UserCheck className="h-4 w-4" />
+              <span className="text-sm font-medium">Demo Credentials</span>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="text-xs text-emerald-600 space-y-1">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'john@example.com', password: 'demo123' })}
+                  className="w-full text-left font-mono bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded transition-colors"
+                  disabled={isLoading}
+                >
+                  john@example.com / demo123
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'sarah@example.com', password: 'demo123' })}
+                  className="w-full text-left font-mono bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded transition-colors"
+                  disabled={isLoading}
+                >
+                  sarah@example.com / demo123 (Premium)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ email: 'test@test.com', password: 'test' })}
+                  className="w-full text-left font-mono bg-emerald-100 hover:bg-emerald-200 px-2 py-1 rounded transition-colors"
+                  disabled={isLoading}
+                >
+                  test@test.com / test (Quick)
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-emerald-600">
+              Click any credential to try the full USD Financial experience
+            </p>
+          </div>
 
           {/* Switch to Signup */}
           <div className="text-center pt-4 border-t border-slate-100">

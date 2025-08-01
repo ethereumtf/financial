@@ -1,6 +1,7 @@
 import { ArrowUpRight, Plus, Send, ArrowLeftRight, TrendingUp, Zap, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { 
   stablecoinPortfolio, 
   totalPortfolioValue, 
@@ -21,7 +22,8 @@ export default function Dashboard() {
   const averageAPY = getWeightedAverageAPY()
 
   return (
-    <div className="space-y-4">
+    <AuthGuard>
+      <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Stablecoin Portfolio</h1>
         <div className="flex items-center space-x-2">
@@ -304,5 +306,6 @@ export default function Dashboard() {
         </Card>
       </div>
     </div>
+    </AuthGuard>
   )
 }

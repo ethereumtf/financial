@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 import { DollarSign, TrendingDown, Shield, AlertTriangle, Calculator, Plus, ArrowRight, Info, Zap, Brain, Target, Clock, CheckCircle, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -245,7 +246,8 @@ export default function LoansPage() {
   const risk = getRiskLevel(currentLTV)
 
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
@@ -897,6 +899,7 @@ export default function LoansPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </AuthGuard>
   )
 }
