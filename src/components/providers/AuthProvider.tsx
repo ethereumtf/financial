@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { unifiedAuth, UnifiedUser } from '@/lib/unifiedAuth'
+import { createContext, useContext, ReactNode } from 'react'
+import { useUnifiedAuth, UnifiedUser } from '@/contexts/UnifiedAuthContext'
 
 // Maintain backward compatibility with existing User interface
 export interface User {
@@ -32,57 +32,31 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isWalletConnected, setIsWalletConnected] = useState(false)
-  const [walletBalance, setWalletBalance] = useState<string | null>(null)
+  const { 
+    user: unifiedUser, 
+    isAuthenticated, 
+    isLoading, 
+    login, 
+    logout, 
+    isWalletConnected,
+    walletBalance,
+    sendTransaction 
+  } = useUnifiedAuth()
 
-  // Initialize auth state from unifiedAuth
-  useEffect(() => {
-    const updateAuthState = () => {
-      const authUser = unifiedAuth.getUser()
-      const isLoading = unifiedAuth.getIsLoading()
-      const walletConnected = unifiedAuth.getIsWalletConnected()
-      const balance = unifiedAuth.getWalletBalanceSync()
-
-      // Convert UnifiedUser to User interface for backward compatibility
-      if (authUser) {
-        const compatibleUser: User = {
-          id: authUser.id,
-          email: authUser.email,
-          name: authUser.name,
-          image: authUser.image,
-          walletAddress: authUser.walletAddress,
-          walletBalance: authUser.walletBalance,
-          accountType: authUser.accountType
-        }
-        setUser(compatibleUser)
-      } else {
-        setUser(null)
-      }
-
-      setLoading(isLoading)
-      setIsWalletConnected(walletConnected)
-      setWalletBalance(balance)
-    }
-
-    // Initial state update
-    updateAuthState()
-
-    // Subscribe to auth state changes
-    const unsubscribe = unifiedAuth.subscribe(updateAuthState)
-
-    return unsubscribe
-  }, [])
+  // Convert UnifiedUser to User interface for backward compatibility
+  const user: User | null = unifiedUser ? {
+    id: unifiedUser.id,
+    email: unifiedUser.email,
+    name: unifiedUser.name,
+    image: unifiedUser.image,
+    walletAddress: unifiedUser.walletAddress,
+    walletBalance: unifiedUser.walletBalance,
+    accountType: unifiedUser.accountType
+  } : null
 
   // Unified sign-in using Web3Auth (supports both email and Google)
   const signIn = async (): Promise<{ success: boolean; error?: string }> => {
-    try {
-      return await unifiedAuth.login()
-    } catch (error) {
-      console.error('Sign in error:', error)
-      return { success: false, error: 'Authentication failed' }
-    }
+    return await login()
   }
 
   // Sign-up redirects to same Web3Auth login (no separate signup needed)
@@ -97,16 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async (): Promise<void> => {
-    await unifiedAuth.logout()
-  }
-
-  const sendTransaction = async (to: string, amount: string): Promise<string> => {
-    return await unifiedAuth.sendTransaction(to, amount)
+    await logout()
   }
 
   const value: AuthContextType = {
     user,
-    loading,
+    loading: isLoading,
     signIn,
     signUp,
     signInWithGoogle,
