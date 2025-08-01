@@ -27,7 +27,6 @@ const navigationItems = [
     icon: Wallet,
     subItems: [
       { name: 'Wallet', href: '/accounts/wallet', icon: Wallet },
-      { name: 'Earn Interest', href: '/accounts/earn', icon: TrendingUp },
       { name: 'Fiat Gateway', href: '/accounts/fiat', icon: DollarSign },
       { name: 'Send Money', href: '/accounts/send', icon: ArrowLeftRight }
     ]
@@ -126,21 +125,21 @@ export function AppShell({ children }: AppShellProps) {
           <button
             onClick={() => toggleExpanded(item.name)}
             className={cn(
-              "w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "w-full flex items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 hover:shadow-md",
               isActive 
-                ? "bg-primary text-primary-foreground" 
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-              mobile && "text-base"
+                ? "bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200" 
+                : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 border border-transparent hover:border-emerald-200",
+              mobile && "text-base py-4"
             )}
           >
             <div className="flex items-center gap-3">
-              <Icon className="h-4 w-4" />
+              <Icon className={cn("h-4 w-4", isActive ? "text-emerald-600" : "text-slate-500")} />
               {item.name}
             </div>
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
           {isExpanded && (
-            <div className="ml-6 space-y-1">
+            <div className="ml-4 mt-1 space-y-1 border-l-2 border-emerald-100 pl-4">
               {item.subItems.map((subItem: any) => {
                 const isSubActive = pathname === subItem.href
                 const SubIcon = subItem.icon
@@ -149,14 +148,14 @@ export function AppShell({ children }: AppShellProps) {
                     key={subItem.href}
                     href={subItem.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:shadow-sm",
                       isSubActive 
-                        ? "bg-emerald-100 text-emerald-700 border-l-2 border-emerald-500" 
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      mobile && "text-base"
+                        ? "bg-emerald-500 text-white shadow-md" 
+                        : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 border border-transparent hover:border-emerald-200",
+                      mobile && "text-base py-3"
                     )}
                   >
-                    <SubIcon className="h-4 w-4" />
+                    <SubIcon className={cn("h-4 w-4", isSubActive ? "text-white" : "text-slate-500")} />
                     {subItem.name}
                   </Link>
                 )
@@ -171,35 +170,35 @@ export function AppShell({ children }: AppShellProps) {
       <Link
         href={item.href!}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+          "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 hover:shadow-md",
           isActive 
-            ? "bg-primary text-primary-foreground" 
-            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-          mobile && "text-base"
+            ? "bg-emerald-500 text-white shadow-md" 
+            : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 border border-transparent hover:border-emerald-200",
+          mobile && "text-base py-4"
         )}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className={cn("h-4 w-4", isActive ? "text-white" : "text-slate-500")} />
         {item.name}
       </Link>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <div className="grid min-h-screen md:grid-cols-[280px_1fr]">
         {/* Desktop Sidebar */}
-        <aside className="hidden border-r bg-muted/40 md:block">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">$</span>
+        <aside className="hidden border-r bg-white shadow-sm md:block">
+          <div className="flex h-full max-h-screen flex-col">
+            <div className="flex h-16 items-center border-b border-slate-200 px-6 bg-gradient-to-r from-emerald-50 to-teal-50">
+              <Link href="/dashboard" className="flex items-center gap-3 font-semibold hover:opacity-80 transition-all duration-200">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
+                  <span className="text-white font-bold text-xl">$</span>
                 </div>
-                <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
+                <span className="text-2xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold tracking-tight">USD Financial</span>
               </Link>
             </div>
-            <div className="flex-1">
-              <nav className="grid gap-2 px-2 py-4">
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-2 px-4 py-6">
                 {navigationItems.map((item) => (
                   <NavLink key={item.href || item.name} item={item} />
                 ))}
@@ -210,7 +209,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <div className="flex flex-col">
           {/* Mobile Header */}
-          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden">
+          <header className="flex h-16 items-center gap-4 border-b border-slate-200 bg-white shadow-sm px-4 md:hidden">
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="shrink-0">
@@ -219,12 +218,12 @@ export function AppShell({ children }: AppShellProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
-                <div className="flex items-center gap-2 font-semibold mb-6">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">$</span>
+                <Link href="/dashboard" className="flex items-center gap-3 font-semibold mb-6 hover:opacity-80 transition-opacity">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-lg">$</span>
                   </div>
-                  <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
-                </div>
+                  <span className="text-xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold tracking-tight">USD Financial</span>
+                </Link>
                 <nav className="grid gap-2 text-lg font-medium">
                   {navigationItems.map((item) => (
                     <NavLink key={item.href || item.name} item={item} mobile />
@@ -233,11 +232,11 @@ export function AppShell({ children }: AppShellProps) {
               </SheetContent>
             </Sheet>
             <div className="w-full flex-1">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                <div className="h-6 w-6 rounded bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">$</span>
+              <Link href="/dashboard" className="flex items-center gap-2 font-semibold hover:opacity-80 transition-opacity">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-sm">$</span>
                 </div>
-                <span className="bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold">USD Financial</span>
+                <span className="text-lg bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent font-bold tracking-tight">USD Financial</span>
               </Link>
             </div>
             {user && (
@@ -335,7 +334,7 @@ export function AppShell({ children }: AppShellProps) {
           </header>
 
           {/* Desktop Header with User Menu */}
-          <header className="hidden md:flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          <header className="hidden md:flex h-16 items-center gap-4 border-b border-slate-200 bg-white shadow-sm px-6">
             <div className="w-full flex-1" />
             <ThemeGenerator />
             {user && (
@@ -476,7 +475,7 @@ export function AppShell({ children }: AppShellProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+          <main className="flex-1 bg-slate-50 p-6">
             {children}
           </main>
         </div>
