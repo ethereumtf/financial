@@ -1,5 +1,6 @@
 import { Web3Auth } from "@web3auth/modal";
 import { CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from "@web3auth/base";
+import { OpenLoginAdapter } from "@web3auth/openlogin-adapter";
 
 const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4GjjGKm6bKJ_fJukNQjc9aYAM";
 
@@ -26,38 +27,22 @@ const web3auth = new Web3Auth({
       primary: "#10b981",
     },
     useLogoLoader: true,
-    modalConfig: {
-      "openlogin": {
-        label: "openlogin",
-        loginMethods: {
-          email_passwordless: {
-            name: "email_passwordless",
-            showOnModal: true,
-          },
-          google: {
-            name: "google", 
-            showOnModal: true,
-          },
-          facebook: {
-            name: "facebook",
-            showOnModal: false,
-          },
-          twitter: {
-            name: "twitter",
-            showOnModal: false,
-          },
-          github: {
-            name: "github",
-            showOnModal: false,
-          },
-          discord: {
-            name: "discord",
-            showOnModal: false,
-          },
-        },
+  },
+});
+
+const openloginAdapter = new OpenLoginAdapter({
+  adapterSettings: {
+    uxMode: 'popup',
+    loginConfig: {
+      jwt: {
+        verifier: 'usd-financial-dev-verifier',
+        typeOfLogin: 'jwt',
+        clientId,
       },
     },
   },
 });
+
+web3auth.configureAdapter(openloginAdapter);
 
 export { web3auth };
