@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrency, StablecoinSymbol } from '@/lib/data'
 
@@ -62,6 +63,7 @@ const existingOrders: CardOrder[] = [
 
 export default function PhysicalCardsPage() {
   const [selectedCardType, setSelectedCardType] = useState(cardTypes[0])
+  const [orders, setOrders] = useState<CardOrder[]>(existingOrders)
   const [shippingInfo, setShippingInfo] = useState({
     address: '',
     city: '',
@@ -69,6 +71,8 @@ export default function PhysicalCardsPage() {
     zipCode: '',
     country: 'US'
   })
+  const [isOrdering, setIsOrdering] = useState(false)
+  const [expressShipping, setExpressShipping] = useState(false)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -88,6 +92,44 @@ export default function PhysicalCardsPage() {
     }
   }
 
+  const handleOrderCard = async () => {
+    if (!shippingInfo.address || !shippingInfo.city || !shippingInfo.state || !shippingInfo.zipCode) {
+      return
+    }
+
+    setIsOrdering(true)
+    try {
+      const newOrder: CardOrder = {
+        id: (orders.length + 1).toString(),
+        type: selectedCardType.id as 'standard' | 'metal' | 'premium',
+        status: 'processing',
+        estimatedDelivery: new Date(Date.now() + (expressShipping ? 3 : 7) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        trackingNumber: `USD${Math.random().toString().slice(2, 12)}`,
+        shippingAddress: `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state} ${shippingInfo.zipCode}`
+      }
+
+      setOrders(prev => [...prev, newOrder])
+      
+      // Reset form
+      setShippingInfo({
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'US'
+      })
+      setExpressShipping(false)
+      
+      // Switch to order status view
+      window.scrollTo(0, 0)
+      
+    } catch (error) {
+      console.error('Failed to place order:', error)
+    } finally {
+      setIsOrdering(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -98,7 +140,10 @@ export default function PhysicalCardsPage() {
           <p className="text-muted-foreground mt-1">Order and manage your physical stablecoin debit cards</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={() => document.getElementById('shipping-tab')?.click()}
+          >
             <CreditCard className="h-4 w-4 mr-2" />
             Order New Card
           </Button>
@@ -106,7 +151,7 @@ export default function PhysicalCardsPage() {
       </div>
 
       {/* Existing Orders */}
-      {existingOrders.length > 0 && (
+      {orders.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -119,7 +164,7 @@ export default function PhysicalCardsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {existingOrders.map((order) => (
+              {orders.map((order) => (
                 <div key={order.id} className="p-4 border rounded-lg hover:bg-emerald-50 transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -172,7 +217,7 @@ export default function PhysicalCardsPage() {
               <Tabs defaultValue="selection">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="selection">Card Selection</TabsTrigger>
-                  <TabsTrigger value="shipping">Shipping Details</TabsTrigger>
+                  <TabsTrigger value="shipping" id="shipping-tab">Shipping Details</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="selection" className="space-y-4 mt-6">
@@ -295,14 +340,20 @@ export default function PhysicalCardsPage() {
                           <span>Shipping:</span>
                           <span className="font-medium">Free (5-7 business days)</span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                           <span>Express shipping:</span>
-                          <span className="font-medium">+{formatCurrency(15)} (2-3 business days)</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">+{formatCurrency(15)} (2-3 business days)</span>
+                            <Switch 
+                              checked={expressShipping} 
+                              onCheckedChange={setExpressShipping}
+                            />
+                          </div>
                         </div>
                         <div className="flex justify-between font-semibold pt-2 border-t border-emerald-200">
                           <span>Total:</span>
                           <span>
-                            {selectedCardType.price === 0 ? 'Free' : formatCurrency(selectedCardType.price)}
+                            {formatCurrency((selectedCardType.price || 0) + (expressShipping ? 15 : 0))}
                           </span>
                         </div>
                       </div>
@@ -310,10 +361,11 @@ export default function PhysicalCardsPage() {
 
                     <Button 
                       className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                      disabled={!shippingInfo.address || !shippingInfo.city || !shippingInfo.state || !shippingInfo.zipCode}
+                      disabled={!shippingInfo.address || !shippingInfo.city || !shippingInfo.state || !shippingInfo.zipCode || isOrdering}
+                      onClick={handleOrderCard}
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
-                      Order {selectedCardType.name}
+                      {isOrdering ? 'Placing Order...' : `Order ${selectedCardType.name}`}
                     </Button>
                   </div>
                 </TabsContent>

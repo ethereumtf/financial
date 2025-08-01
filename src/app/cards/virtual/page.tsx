@@ -86,6 +86,7 @@ const virtualCards: VirtualCard[] = [
 
 export default function VirtualCardsPage() {
   const [showCardDetails, setShowCardDetails] = useState<Record<string, boolean>>({})
+  const [cards, setCards] = useState<VirtualCard[]>(virtualCards)
   const [newCardName, setNewCardName] = useState('')
   const [newCardBalance, setNewCardBalance] = useState('')
   const [newCardCurrency, setNewCardCurrency] = useState<StablecoinSymbol>('USDC')
@@ -94,6 +95,7 @@ export default function VirtualCardsPage() {
     daily: 2000,
     monthly: 5000
   })
+  const [isCreating, setIsCreating] = useState(false)
 
   const toggleCardDetails = (cardId: string) => {
     setShowCardDetails(prev => ({
@@ -102,8 +104,60 @@ export default function VirtualCardsPage() {
     }))
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      // Could add toast notification here
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error)
+    }
+  }
+
+  const handleCreateCard = async () => {
+    if (!newCardName || !newCardBalance) return
+    
+    setIsCreating(true)
+    try {
+      const newCard: VirtualCard = {
+        id: (cards.length + 1).toString(),
+        name: newCardName,
+        cardNumber: `4532 ${Math.random().toString().slice(2, 6)} ${Math.random().toString().slice(2, 6)} ${Math.random().toString().slice(2, 6)}`,
+        expiryDate: new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: '2-digit', year: '2-digit' }),
+        cvv: Math.floor(Math.random() * 900 + 100).toString(),
+        status: 'active',
+        balance: parseFloat(newCardBalance),
+        currency: newCardCurrency,
+        limits: newCardLimits,
+        isTemporary: false,
+        createdDate: new Date().toISOString().split('T')[0],
+        totalSpent: 0
+      }
+      
+      setCards(prev => [...prev, newCard])
+      
+      // Reset form
+      setNewCardName('')
+      setNewCardBalance('')
+      setNewCardCurrency('USDC')
+      setNewCardLimits({ single: 1000, daily: 2000, monthly: 5000 })
+      
+    } catch (error) {
+      console.error('Failed to create card:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handleDeleteCard = (cardId: string) => {
+    setCards(prev => prev.filter(card => card.id !== cardId))
+  }
+
+  const handleLockCard = (cardId: string) => {
+    setCards(prev => prev.map(card => 
+      card.id === cardId 
+        ? { ...card, status: card.status === 'active' ? 'locked' : 'active' }
+        : card
+    ))
   }
 
   const getStatusColor = (status: string) => {
@@ -132,7 +186,10 @@ export default function VirtualCardsPage() {
           <p className="text-muted-foreground mt-1">Create instant virtual cards for secure online payments</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={() => document.getElementById('create-tab')?.click()}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Virtual Card
           </Button>
@@ -149,7 +206,7 @@ export default function VirtualCardsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">{virtualCards.length}</div>
+            <div className="text-2xl font-bold text-emerald-600">{cards.length}</div>
             <p className="text-sm text-muted-foreground">Active virtual cards</p>
           </CardContent>
         </Card>
@@ -162,7 +219,7 @@ export default function VirtualCardsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(virtualCards.reduce((sum, card) => sum + card.balance, 0))}</div>
+            <div className="text-2xl font-bold">{formatCurrency(cards.reduce((sum, card) => sum + card.balance, 0))}</div>
             <p className="text-sm text-muted-foreground">Across all cards</p>
           </CardContent>
         </Card>
@@ -175,7 +232,7 @@ export default function VirtualCardsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(virtualCards.reduce((sum, card) => sum + card.totalSpent, 0))}</div>
+            <div className="text-2xl font-bold">{formatCurrency(cards.reduce((sum, card) => sum + card.totalSpent, 0))}</div>
             <p className="text-sm text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -211,11 +268,11 @@ export default function VirtualCardsPage() {
               <Tabs defaultValue="cards">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="cards">Active Cards</TabsTrigger>
-                  <TabsTrigger value="create">Create New</TabsTrigger>
+                  <TabsTrigger value="create" id="create-tab">Create New</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="cards" className="space-y-4 mt-6">
-                  {virtualCards.map((card) => (
+                  {cards.map((card) => (
                     <div key={card.id} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -313,10 +370,19 @@ export default function VirtualCardsPage() {
                           >
                             {showCardDetails[card.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleLockCard(card.id)}
+                          >
                             <Settings className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteCard(card.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -420,10 +486,11 @@ export default function VirtualCardsPage() {
 
                     <Button 
                       className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                      disabled={!newCardName || !newCardBalance}
+                      disabled={!newCardName || !newCardBalance || isCreating}
+                      onClick={handleCreateCard}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Create Virtual Card
+                      {isCreating ? 'Creating...' : 'Create Virtual Card'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -475,15 +542,30 @@ export default function VirtualCardsPage() {
               <CardTitle className="text-base">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => {
+                  setNewCardName('Temporary Card')
+                  document.getElementById('create-tab')?.click()
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Temporary Card
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => window.location.href = '/cards/controls'}
+              >
                 <Settings className="h-4 w-4 mr-2" />
                 Bulk Card Management
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => window.location.href = '/cards'}
+              >
                 <Globe className="h-4 w-4 mr-2" />
                 View Transaction History
               </Button>

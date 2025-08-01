@@ -107,10 +107,12 @@ const userCards: CardControl[] = [
 ]
 
 export default function CardControlsPage() {
+  const [cards, setCards] = useState<CardControl[]>(userCards)
   const [selectedCard, setSelectedCard] = useState<CardControl>(userCards[0])
   const [limits, setLimits] = useState(selectedCard.limits)
   const [restrictions, setRestrictions] = useState(selectedCard.restrictions)
   const [notifications, setNotifications] = useState(selectedCard.notifications)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,14 +135,78 @@ export default function CardControlsPage() {
     setNotifications(prev => ({ ...prev, [field]: value }))
   }
 
-  const lockCard = (cardId: string) => {
-    // Lock card logic
-    console.log('Locking card:', cardId)
+  const lockCard = async (cardId: string) => {
+    setIsUpdating(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === cardId ? { ...card, status: 'locked' } : card
+      ))
+      if (selectedCard.id === cardId) {
+        setSelectedCard(prev => ({ ...prev, status: 'locked' }))
+      }
+    } catch (error) {
+      console.error('Failed to lock card:', error)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
-  const unlockCard = (cardId: string) => {
-    // Unlock card logic
-    console.log('Unlocking card:', cardId)
+  const unlockCard = async (cardId: string) => {
+    setIsUpdating(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === cardId ? { ...card, status: 'active' } : card
+      ))
+      if (selectedCard.id === cardId) {
+        setSelectedCard(prev => ({ ...prev, status: 'active' }))
+      }
+    } catch (error) {
+      console.error('Failed to unlock card:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const updateLimits = async () => {
+    setIsUpdating(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === selectedCard.id ? { ...card, limits } : card
+      ))
+      setSelectedCard(prev => ({ ...prev, limits }))
+    } catch (error) {
+      console.error('Failed to update limits:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const updateCardRestrictions = async () => {
+    setIsUpdating(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === selectedCard.id ? { ...card, restrictions } : card
+      ))
+      setSelectedCard(prev => ({ ...prev, restrictions }))
+    } catch (error) {
+      console.error('Failed to update restrictions:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const updateCardNotifications = async () => {
+    setIsUpdating(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === selectedCard.id ? { ...card, notifications } : card
+      ))
+      setSelectedCard(prev => ({ ...prev, notifications }))
+    } catch (error) {
+      console.error('Failed to update notifications:', error)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   return (
@@ -170,7 +236,7 @@ export default function CardControlsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2">
-            {userCards.map((card) => (
+            {cards.map((card) => (
               <div
                 key={card.id}
                 className={`p-4 border rounded-lg cursor-pointer transition-all ${
@@ -305,8 +371,12 @@ export default function CardControlsPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
-                      Update Spending Limits
+                    <Button 
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                      onClick={updateLimits}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Update Spending Limits'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -401,8 +471,12 @@ export default function CardControlsPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
-                      Update Restrictions
+                    <Button 
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                      onClick={updateCardRestrictions}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Update Restrictions'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -465,8 +539,12 @@ export default function CardControlsPage() {
                       </div>
                     </div>
 
-                    <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
-                      Update Notification Settings
+                    <Button 
+                      className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                      onClick={updateCardNotifications}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Update Notification Settings'}
                     </Button>
                   </div>
                 </TabsContent>
@@ -490,31 +568,45 @@ export default function CardControlsPage() {
                   variant="destructive" 
                   className="w-full"
                   onClick={() => lockCard(selectedCard.id)}
+                  disabled={isUpdating}
                 >
                   <Lock className="h-4 w-4 mr-2" />
-                  Lock Card
+                  {isUpdating ? 'Locking...' : 'Lock Card'}
                 </Button>
               ) : (
                 <Button 
                   className="w-full bg-gradient-to-r from-emerald-500 to-teal-500"
                   onClick={() => unlockCard(selectedCard.id)}
+                  disabled={isUpdating}
                 >
                   <Unlock className="h-4 w-4 mr-2" />
-                  Unlock Card
+                  {isUpdating ? 'Unlocking...' : 'Unlock Card'}
                 </Button>
               )}
               
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => alert('Report Lost/Stolen functionality would be implemented here')}
+              >
                 <AlertTriangle className="h-4 w-4 mr-2" />
                 Report Lost/Stolen
               </Button>
               
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => window.location.href = '/cards/physical'}
+              >
                 <CreditCard className="h-4 w-4 mr-2" />
                 Replace Card
               </Button>
               
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => alert('Travel Notice functionality would be implemented here')}
+              >
                 <MapPin className="h-4 w-4 mr-2" />
                 Travel Notice
               </Button>
@@ -560,7 +652,12 @@ export default function CardControlsPage() {
                   {formatCurrency(selectedCard.balance)}
                 </div>
                 <div className="text-sm text-muted-foreground">{selectedCard.currency}</div>
-                <Button size="sm" variant="outline" className="w-full mt-3">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full mt-3"
+                  onClick={() => window.location.href = '/accounts/wallet'}
+                >
                   <DollarSign className="h-4 w-4 mr-2" />
                   Add Funds
                 </Button>

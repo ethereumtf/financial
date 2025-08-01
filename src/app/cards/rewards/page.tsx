@@ -131,6 +131,7 @@ const recentCashback: RewardTransaction[] = [
 
 export default function RewardsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<'month' | 'quarter' | 'year'>('month')
+  const [isRedeeming, setIsRedeeming] = useState(false)
   
   const totalCashback = recentCashback.reduce((sum, tx) => sum + tx.cashback, 0)
   const totalSpent = recentCashback.reduce((sum, tx) => sum + tx.amount, 0)
@@ -144,6 +145,19 @@ export default function RewardsPage() {
   const nextTier = rewardTiers.find(tier => tier.minSpend > totalSpent)
   const tierProgress = nextTier ? ((totalSpent - currentTier.minSpend) / (nextTier.minSpend - currentTier.minSpend)) * 100 : 100
 
+  const handleRedeemRewards = async (type: string) => {
+    setIsRedeeming(true)
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      alert(`${type} redemption would be processed here`)
+    } catch (error) {
+      console.error('Redemption failed:', error)
+    } finally {
+      setIsRedeeming(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -154,9 +168,13 @@ export default function RewardsPage() {
           <p className="text-muted-foreground mt-1">Earn cashback on every purchase with your stablecoin cards</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={() => handleRedeemRewards('General')}
+            disabled={isRedeeming}
+          >
             <Gift className="h-4 w-4 mr-2" />
-            Redeem Rewards
+            {isRedeeming ? 'Processing...' : 'Redeem Rewards'}
           </Button>
         </div>
       </div>
@@ -362,19 +380,39 @@ export default function RewardsPage() {
               <CardTitle className="text-base">Redeem Options</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleRedeemRewards('Statement Credit')}
+                disabled={isRedeeming}
+              >
                 <DollarSign className="h-4 w-4 mr-2" />
                 Statement Credit
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleRedeemRewards('Transfer to Wallet')}
+                disabled={isRedeeming}
+              >
                 <ArrowRight className="h-4 w-4 mr-2" />
                 Transfer to Wallet
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleRedeemRewards('Gift Cards')}
+                disabled={isRedeeming}
+              >
                 <Gift className="h-4 w-4 mr-2" />
                 Gift Cards
               </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={() => handleRedeemRewards('Merchant Credits')}
+                disabled={isRedeeming}
+              >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Merchant Credits
               </Button>

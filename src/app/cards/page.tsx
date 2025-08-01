@@ -59,9 +59,50 @@ const userCards: DebitCard[] = [
 export default function CardsPage() {
   const [showBalance, setShowBalance] = useState(false)
   const [selectedCard, setSelectedCard] = useState<DebitCard>(userCards[0])
+  const [cards, setCards] = useState<DebitCard[]>(userCards)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const totalBalance = userCards.reduce((sum, card) => sum + card.balance, 0)
-  const totalSpend = userCards.reduce((sum, card) => sum + card.monthlySpend, 0)
+  const totalBalance = cards.reduce((sum, card) => sum + card.balance, 0)
+  const totalSpend = cards.reduce((sum, card) => sum + card.monthlySpend, 0)
+
+  const handleLockCard = async (cardId: string) => {
+    setIsLoading(true)
+    try {
+      setCards(prev => prev.map(card => 
+        card.id === cardId ? { ...card, status: card.status === 'active' ? 'locked' : 'active' } : card
+      ))
+      if (selectedCard.id === cardId) {
+        setSelectedCard(prev => ({ 
+          ...prev, 
+          status: prev.status === 'active' ? 'locked' : 'active' 
+        }))
+      }
+    } catch (error) {
+      console.error('Card lock/unlock failed:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAddFunds = (cardId: string) => {
+    // Navigate to add funds functionality
+    console.log('Add funds to card:', cardId)
+  }
+
+  const handleOrderCard = () => {
+    // Navigate to card ordering
+    window.location.href = '/cards/physical'
+  }
+
+  const handleCardSettings = () => {
+    // Navigate to card controls
+    window.location.href = '/cards/controls'
+  }
+
+  const handleAdjustLimits = () => {
+    // Navigate to card controls with limits tab
+    window.location.href = '/cards/controls'
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,11 +123,18 @@ export default function CardsPage() {
           <p className="text-muted-foreground mt-1">Spend your stablecoins anywhere with our debit cards</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+          <Button 
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+            onClick={handleOrderCard}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Order Card
           </Button>
-          <Button variant="outline" className="border-emerald-200 text-emerald-600 hover:bg-emerald-50">
+          <Button 
+            variant="outline" 
+            className="border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+            onClick={handleCardSettings}
+          >
             <Settings className="h-4 w-4 mr-2" />
             Card Settings
           </Button>
@@ -129,7 +177,7 @@ export default function CardsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{userCards.filter(c => c.status === 'active').length}</div>
+            <div className="text-2xl font-bold">{cards.filter(c => c.status === 'active').length}</div>
             <p className="text-sm text-muted-foreground">Ready to use</p>
           </CardContent>
         </Card>
@@ -169,7 +217,7 @@ export default function CardsPage() {
                 </TabsList>
 
                 <TabsContent value="cards" className="space-y-4 mt-6">
-                  {userCards.map((card) => (
+                  {cards.map((card) => (
                     <div
                       key={card.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-all ${
@@ -212,7 +260,11 @@ export default function CardsPage() {
                     <CreditCard className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
                     <p className="text-sm font-medium">Need another card?</p>
                     <p className="text-xs text-muted-foreground mb-3">Order physical or create virtual cards instantly</p>
-                    <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-teal-500">
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-emerald-500 to-teal-500"
+                      onClick={() => window.location.href = '/cards/virtual'}
+                    >
                       <Plus className="h-4 w-4 mr-1" />
                       Add Card
                     </Button>
@@ -286,6 +338,8 @@ export default function CardsPage() {
                   size="sm" 
                   variant={selectedCard.status === 'active' ? 'destructive' : 'default'}
                   className={selectedCard.status === 'active' ? '' : 'bg-gradient-to-r from-emerald-500 to-teal-500'}
+                  onClick={() => handleLockCard(selectedCard.id)}
+                  disabled={isLoading}
                 >
                   {selectedCard.status === 'active' ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                   {selectedCard.status === 'active' ? 'Lock' : 'Unlock'}
@@ -308,7 +362,12 @@ export default function CardsPage() {
                     <span className="font-medium">{formatCurrency(selectedCard.limits.atm)}</span>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" className="w-full mt-3">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full mt-3"
+                  onClick={handleAdjustLimits}
+                >
                   <Settings className="h-4 w-4 mr-2" />
                   Adjust Limits
                 </Button>
