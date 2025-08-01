@@ -53,12 +53,21 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
   const [walletBalance, setWalletBalance] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Initialize Web3Auth on client side only
+  // First useEffect - just to mark component as mounted
   useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Second useEffect - Initialize Web3Auth only after mounting
+  useEffect(() => {
+    if (!isMounted) return
+
     const initWeb3Auth = async () => {
-      // Only run in browser environment
-      if (typeof window === 'undefined') {
+      // Triple check for browser environment
+      if (typeof window === 'undefined' || typeof document === 'undefined' || !window.document) {
+        console.log('Not in browser environment, skipping Web3Auth initialization')
         setIsLoading(false)
         return
       }
@@ -158,7 +167,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
     }
 
     initWeb3Auth()
-  }, [])
+  }, [isMounted]) // Depend on isMounted to ensure we're in browser
 
   const syncUserData = async (web3authInstance: Web3Auth) => {
     try {
@@ -226,7 +235,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
   }
 
   const login = async (): Promise<{ success: boolean; error?: string }> => {
-    if (!web3auth || !isInitialized) {
+    if (!isMounted || !web3auth || !isInitialized) {
       return { success: false, error: 'Web3Auth not initialized' }
     }
 
@@ -250,7 +259,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
   }
 
   const logout = async (): Promise<void> => {
-    if (!web3auth) return
+    if (!isMounted || !web3auth) return
 
     try {
       setIsLoading(true)
@@ -300,7 +309,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
   const value: UnifiedAuthContextType = {
     user,
     isAuthenticated: !!user && !!web3auth?.connected,
-    isLoading: isLoading || !isInitialized,
+    isLoading: isLoading || !isInitialized || !isMounted,
     login,
     logout,
     isWalletConnected: !!provider && !!walletAddress,
@@ -308,6 +317,26 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
     walletAddress,
     walletBalance,
     sendTransaction,
+  }
+
+  // Don't render anything until we're mounted (client-side)
+  if (!isMounted) {
+    return (
+      <UnifiedAuthContext.Provider value={{
+        user: null,
+        isAuthenticated: false,
+        isLoading: true,
+        login: async () => ({ success: false, error: 'Initializing...' }),
+        logout: async () => {},
+        isWalletConnected: false,
+        provider: null,
+        walletAddress: null,
+        walletBalance: null,
+        sendTransaction: async () => { throw new Error('Not initialized') },
+      }}>
+        {children}
+      </UnifiedAuthContext.Provider>
+    )
   }
 
   return (
