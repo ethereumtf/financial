@@ -11,9 +11,11 @@ export interface User {
   image?: string
   // Extended properties from AAUser (Account Abstraction)
   walletAddress?: string // Smart wallet address
-  walletBalance?: string // Smart wallet balance
+  walletBalance?: string // Smart wallet ETH balance
+  walletUsdcBalance?: string // Smart wallet USDC balance
   eoaAddress?: string // EOA fallback address
-  eoaBalance?: string // EOA fallback balance
+  eoaBalance?: string // EOA fallback ETH balance
+  eoaUsdcBalance?: string // EOA fallback USDC balance
   accountType?: 'personal' | 'business' | 'premium'
 }
 
@@ -47,8 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAAReady,
     smartWalletAddress,
     smartWalletBalance,
+    smartWalletUsdcBalance,
     eoaAddress,
     eoaBalance,
+    eoaUsdcBalance,
     sendGaslessTransaction,
     sendRegularTransaction 
   } = useAccountAbstraction()
@@ -61,8 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     image: aaUser.image,
     walletAddress: aaUser.smartWalletAddress, // Prioritize smart wallet
     walletBalance: aaUser.smartWalletBalance,
+    walletUsdcBalance: aaUser.smartWalletUsdcBalance,
     eoaAddress: aaUser.eoaAddress,
     eoaBalance: aaUser.eoaBalance,
+    eoaUsdcBalance: aaUser.eoaUsdcBalance,
     accountType: aaUser.accountType
   } : null
 

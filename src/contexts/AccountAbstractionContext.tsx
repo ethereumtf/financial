@@ -13,9 +13,11 @@ export interface AAUser {
   // Smart Contract Wallet info
   smartWalletAddress?: string
   smartWalletBalance?: string
+  smartWalletUsdcBalance?: string
   // EOA wallet info (for fallback)
   eoaAddress?: string
   eoaBalance?: string
+  eoaUsdcBalance?: string
   // App-specific info
   accountType?: 'personal' | 'business' | 'premium'
   preferences?: {
@@ -39,6 +41,7 @@ interface AccountAbstractionContextType {
   isAAReady: boolean
   smartWalletAddress: string | null
   smartWalletBalance: string | null
+  smartWalletUsdcBalance: string | null
   currentChain: string
   
   // Transaction methods
@@ -50,6 +53,7 @@ interface AccountAbstractionContextType {
   eoaProvider: IProvider | null
   eoaAddress: string | null
   eoaBalance: string | null
+  eoaUsdcBalance: string | null
 }
 
 const AccountAbstractionContext = createContext<AccountAbstractionContextType | null>(null)
@@ -64,8 +68,10 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   const [user, setUser] = useState<AAUser | null>(null)
   const [eoaAddress, setEOAAddress] = useState<string | null>(null)
   const [eoaBalance, setEOABalance] = useState<string | null>(null)
+  const [eoaUsdcBalance, setEOAUsdcBalance] = useState<string | null>(null)
   const [smartWalletAddress, setSmartWalletAddress] = useState<string | null>(null)
   const [smartWalletBalance, setSmartWalletBalance] = useState<string | null>(null)
+  const [smartWalletUsdcBalance, setSmartWalletUsdcBalance] = useState<string | null>(null)
   const [currentChain, setCurrentChain] = useState<string>('sepolia')
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -74,6 +80,9 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   
   // AA Service instance
   const [aaService] = useState(() => new SimpleAAService())
+  
+  // Token contract addresses
+  const USDC_SEPOLIA = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
 
   // First useEffect - just to mark component as mounted
   useEffect(() => {
@@ -200,20 +209,25 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       // Get EOA wallet info
       let eoaAddr: string | null = null
       let eoabal: string | null = null
+      let eoaUsdcBal: string | null = null
       let smartAddr: string | null = null
       let smartBal: string | null = null
+      let smartUsdcBal: string | null = null
       
       if (web3authInstance.provider) {
         console.log('🔍 Web3Auth provider available, getting addresses...')
         eoaAddr = await getEOAAddress(web3authInstance.provider)
         eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
+        eoaUsdcBal = await getTokenBalance(web3authInstance.provider, eoaAddr, USDC_SEPOLIA, 6)
         
-        console.log('🔍 Addresses calculated:')
+        console.log('🔍 Addresses and balances calculated:')
         console.log('  EOA Address:', eoaAddr)
-        console.log('  EOA Balance:', eoabal)
+        console.log('  EOA ETH Balance:', eoabal)
+        console.log('  EOA USDC Balance:', eoaUsdcBal)
         
         setEOAAddress(eoaAddr)
         setEOABalance(eoabal)
+        setEOAUsdcBalance(eoaUsdcBal)
 
         // Initialize Simple Account Abstraction
         try {
@@ -224,11 +238,18 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
               smartAddr = aaService.getSmartWalletAddress()
               smartBal = await aaService.getBalance()
               
+              // Get smart wallet USDC balance
+              if (smartAddr) {
+                smartUsdcBal = await getTokenBalance(web3authInstance.provider, smartAddr, USDC_SEPOLIA, 6)
+              }
+              
               setSmartWalletAddress(smartAddr)
               setSmartWalletBalance(smartBal)
+              setSmartWalletUsdcBalance(smartUsdcBal)
               setIsAAReady(true)
               
               console.log(`🎯 Smart Wallet Ready: ${smartAddr}`)
+              console.log(`💰 Smart Wallet USDC Balance: ${smartUsdcBal}`)
             } else {
               console.log('⚠️ AA not available, using EOA mode')
               setIsAAReady(false)
@@ -251,8 +272,10 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         image: userInfo.profileImage,
         smartWalletAddress: smartAddr || undefined,
         smartWalletBalance: smartBal || undefined,
+        smartWalletUsdcBalance: smartUsdcBal || undefined,
         eoaAddress: eoaAddr || undefined,
         eoaBalance: eoabal || undefined,
+        eoaUsdcBalance: eoaUsdcBal || undefined,
         accountType: 'personal',
         preferences: {
           currency: 'USDC',
@@ -262,9 +285,9 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       }
       
       // Debug: Log the user object being created
-      console.log('🔍 AccountAbstraction - Creating user with addresses:')
-      console.log('  Smart wallet:', smartAddr)
-      console.log('  EOA address:', eoaAddr)
+      console.log('🔍 AccountAbstraction - Creating user with addresses and balances:')
+      console.log('  Smart wallet:', smartAddr, 'ETH:', smartBal, 'USDC:', smartUsdcBal)
+      console.log('  EOA address:', eoaAddr, 'ETH:', eoabal, 'USDC:', eoaUsdcBal)
       console.log('  User object:', aaUser)
 
       setUser(aaUser)
@@ -299,6 +322,29 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       return ethers.formatEther(balance)
     } catch (error) {
       console.error('Get EOA balance error:', error)
+      return '0'
+    }
+  }
+
+  const getTokenBalance = async (provider: IProvider, address: string | null, tokenContract: string, decimals: number = 6): Promise<string> => {
+    if (!address) return '0'
+    
+    try {
+      const { ethers } = await import('ethers')
+      const ethersProvider = new ethers.BrowserProvider(provider)
+      
+      // ERC-20 ABI for balanceOf function
+      const erc20Abi = [
+        "function balanceOf(address owner) view returns (uint256)"
+      ]
+      
+      const contract = new ethers.Contract(tokenContract, erc20Abi, ethersProvider)
+      const balance = await contract.balanceOf(address)
+      
+      // Format balance with specified decimals (USDC uses 6 decimals)
+      return ethers.formatUnits(balance, decimals)
+    } catch (error) {
+      console.error('Get token balance error:', error)
       return '0'
     }
   }
@@ -342,8 +388,10 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       setUser(null)
       setEOAAddress(null)
       setEOABalance(null)
+      setEOAUsdcBalance(null)
       setSmartWalletAddress(null)
       setSmartWalletBalance(null)
+      setSmartWalletUsdcBalance(null)
       setIsAAReady(false)
       
       // Clear persisted session
@@ -428,6 +476,7 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     isAAReady,
     smartWalletAddress,
     smartWalletBalance,
+    smartWalletUsdcBalance,
     currentChain,
     sendGaslessTransaction,
     sendRegularTransaction,
@@ -435,6 +484,7 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     eoaProvider,
     eoaAddress,
     eoaBalance,
+    eoaUsdcBalance,
   }
 
   // Don't render anything until we're mounted (client-side)

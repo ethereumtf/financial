@@ -45,6 +45,17 @@ export default function WalletPage() {
       isNative: true
     },
     {
+      id: 'usdc',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      balance: parseFloat(user?.walletUsdcBalance || '0'),
+      usdValue: parseFloat(user?.walletUsdcBalance || '0'), // USDC is $1
+      icon: '💵',
+      change24h: 0.00,
+      minimumWithdraw: 1,
+      isNative: false
+    },
+    {
       id: 'eth-eoa',
       name: 'Ethereum (Backup)',
       symbol: 'ETH',
@@ -54,6 +65,18 @@ export default function WalletPage() {
       change24h: 0.05,
       minimumWithdraw: 0.001,
       isNative: true,
+      isBackup: true
+    },
+    {
+      id: 'usdc-eoa',
+      name: 'USD Coin (Backup)',
+      symbol: 'USDC',
+      balance: parseFloat(user?.eoaUsdcBalance || '0'),
+      usdValue: parseFloat(user?.eoaUsdcBalance || '0'), // USDC is $1
+      icon: '🔒',
+      change24h: 0.00,
+      minimumWithdraw: 1,
+      isNative: false,
       isBackup: true
     }
   ].filter(asset => asset.balance > 0) // Only show assets with balance
