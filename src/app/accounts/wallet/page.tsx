@@ -10,91 +10,77 @@ import { PortfolioHeader } from '@/components/wallet/PortfolioHeader'
 import { PrimaryActions } from '@/components/wallet/PrimaryActions'
 import { AssetList } from '@/components/wallet/AssetList'
 import { ActivityHistory } from '@/components/wallet/ActivityHistory'
-import { DepositModal } from '@/components/wallet/DepositModal'
-import { WithdrawModal } from '@/components/wallet/WithdrawModal'
+import { EnhancedDepositModal } from '@/components/wallet/EnhancedDepositModal'
+import { EnhancedWithdrawModal } from '@/components/wallet/EnhancedWithdrawModal'
 import { TransactionReceiptModal } from '@/components/wallet/TransactionReceiptModal'
 import { useAuth } from '@/hooks/useAuth'
+import { useTransactionHistory } from '@/lib/transactionHistory'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function WalletPage() {
   const { user, loading, isWalletConnected, isAAReady, walletBalance, eoaBalance, sendTransaction, sendGaslessTransaction, signIn } = useAuth()
+  const { addTransaction } = useTransactionHistory()
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null)
   const [isCreatingWallet, setIsCreatingWallet] = useState(false)
 
-  // Mock data for the AA wallet
-  const mockAssets = [
+  // Real wallet assets based on actual balances
+  const realAssets = [
     {
-      id: 'usdc',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      balance: 1250.50,
-      usdValue: 1250.50,
-      icon: '💵',
-      change24h: 0.01,
-      minimumWithdraw: 1
+      id: 'eth',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      balance: parseFloat(walletBalance || '0'),
+      usdValue: parseFloat(walletBalance || '0') * 3200, // Current ETH price approximation
+      icon: '💎',
+      change24h: 0.05,
+      minimumWithdraw: 0.001,
+      isNative: true
     },
     {
-      id: 'usdt',
-      name: 'Tether',
-      symbol: 'USDT',
-      balance: 750.25,
-      usdValue: 750.25,
-      icon: '💶',
-      change24h: -0.02,
-      minimumWithdraw: 1
+      id: 'eth-eoa',
+      name: 'Ethereum (Backup)',
+      symbol: 'ETH',
+      balance: parseFloat(eoaBalance || '0'),
+      usdValue: parseFloat(eoaBalance || '0') * 3200,
+      icon: '🔒',
+      change24h: 0.05,
+      minimumWithdraw: 0.001,
+      isNative: true,
+      isBackup: true
     }
-  ]
+  ].filter(asset => asset.balance > 0) // Only show assets with balance
 
   const networks = [
+    {
+      id: 'sepolia',
+      name: 'Ethereum Sepolia',
+      displayName: 'Sepolia Testnet',
+      smartWalletAddress: user?.walletAddress || '',
+      eoaAddress: user?.eoaAddress || '',
+      minimumDeposit: 0.001,
+      estimatedTime: '30 seconds',
+      fee: 0,
+      icon: '🔧',
+      isTestnet: true
+    },
     {
       id: 'ethereum',
       name: 'Ethereum Mainnet',
       displayName: 'Ethereum',
-      address: user?.walletAddress || '',
-      minimumDeposit: 10,
+      smartWalletAddress: user?.walletAddress || '',
+      eoaAddress: user?.eoaAddress || '',
+      minimumDeposit: 0.01,
       estimatedTime: '2-5 minutes',
       fee: 0.002,
-      icon: '🔷'
-    },
-    {
-      id: 'polygon',
-      name: 'Polygon',
-      displayName: 'Polygon',
-      address: user?.walletAddress || '',
-      minimumDeposit: 1,
-      estimatedTime: '1-2 minutes',
-      fee: 0.001,
-      icon: '🟣'
+      icon: '💎'
     }
   ]
 
-  const mockTransactions = [
-    {
-      id: '1',
-      type: 'deposit' as const,
-      description: 'Added money via bank transfer',
-      amount: 500,
-      currency: 'USD',
-      date: '2 hours ago',
-      status: 'completed' as const,
-      hash: '0x123...abc'
-    },
-    {
-      id: '2',
-      type: 'withdrawal' as const,
-      description: 'Sent to wallet',
-      amount: -150,
-      currency: 'USD',
-      date: '1 day ago',
-      status: 'completed' as const,
-      hash: '0x456...def'
-    }
-  ]
 
-  const totalBalance = mockAssets.reduce((sum, asset) => sum + asset.usdValue, 0) + parseFloat(walletBalance || '0') * 3200 // Approximate ETH to USD
+  const totalBalance = realAssets.reduce((sum, asset) => sum + asset.usdValue, 0)
 
   const handleCreateWallet = async () => {
     try {
@@ -114,8 +100,8 @@ export default function WalletPage() {
   const handleTransactionClick = (transaction: any) => {
     setSelectedTransaction({
       ...transaction,
-      asset: mockAssets[0],
-      network: mockNetworks[0],
+      asset: realAssets[0],
+      network: networks[0],
       timestamp: new Date().toISOString(),
       confirmations: 12,
       requiredConfirmations: 12
@@ -125,23 +111,34 @@ export default function WalletPage() {
 
   const handleWithdraw = async (data: any) => {
     try {
-      const txHash = await sendTransaction(data.address, data.amount.toString())
+      let txHash: string
       
-      // Add transaction to history
-      const newTransaction = {
-        id: Date.now().toString(),
-        type: 'withdrawal' as const,
-        description: `Sent ${data.amount} ${mockAssets.find(a => a.id === data.assetId)?.symbol}`,
-        amount: -data.amount,
-        currency: 'USD',
-        date: 'Just now',
-        status: 'pending' as const,
-        hash: txHash
+      // Use gasless or regular transaction based on user choice
+      if (data.useGasless && isAAReady) {
+        txHash = await sendGaslessTransaction(data.address, data.amount.toString())
+      } else {
+        txHash = await sendTransaction(data.address, data.amount.toString())
       }
+      
+      // Add transaction to real history
+      const asset = realAssets.find(a => a.id === data.assetId)
+      const newTransaction = addTransaction({
+        type: 'send',
+        description: `Sent ${data.amount} ${asset?.symbol || 'ETH'} to ${data.address.slice(0, 6)}...${data.address.slice(-4)}`,
+        amount: -data.amount,
+        currency: asset?.symbol || 'ETH',
+        status: 'pending',
+        hash: txHash,
+        gasUsed: data.useGasless ? 0 : 21000,
+        gasPrice: data.useGasless ? 0 : 20,
+        isGasless: data.useGasless && isAAReady,
+        walletType: data.useGasless && isAAReady ? 'smart' : 'eoa',
+        to: data.address
+      })
       
       setSelectedTransaction({
         ...newTransaction,
-        asset: mockAssets.find(a => a.id === data.assetId),
+        asset: asset,
         network: networks.find(n => n.id === data.networkId),
         timestamp: new Date().toISOString(),
         confirmations: 0,
@@ -151,6 +148,13 @@ export default function WalletPage() {
       })
       
       setShowReceiptModal(true)
+      
+      // Simulate confirmation after 3 seconds
+      setTimeout(() => {
+        // Update transaction status to completed in real service
+        // transactionHistoryService.updateTransactionStatus(newTransaction.id, 'completed', 12)
+      }, 3000)
+      
     } catch (error) {
       console.error('Withdrawal failed:', error)
       // Handle error - could show toast notification
@@ -251,13 +255,13 @@ export default function WalletPage() {
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Your Stablecoins</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Your Assets</h2>
                 <div className="text-sm text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-medium">
-                  💰 {mockAssets.length} Assets
+                  💰 {realAssets.length} Asset{realAssets.length !== 1 ? 's' : ''}
                 </div>
               </div>
               <AssetList 
-                assets={mockAssets}
+                assets={realAssets}
                 onAssetClick={handleAssetClick}
               />
             </div>
@@ -283,19 +287,21 @@ export default function WalletPage() {
           </TabsContent>
         </Tabs>
 
-      <DepositModal
+      <EnhancedDepositModal
         open={showDepositModal}
         onOpenChange={setShowDepositModal}
         networks={networks}
-        selectedAsset={mockAssets[0]}
+        currentBalance={walletBalance || '0'}
+        isAAReady={isAAReady}
       />
 
-      <WithdrawModal
+      <EnhancedWithdrawModal
         open={showWithdrawModal}
         onOpenChange={setShowWithdrawModal}
-        assets={mockAssets}
+        assets={realAssets}
         networks={networks}
         onConfirmWithdraw={handleWithdraw}
+        isAAReady={isAAReady}
       />
 
       {selectedTransaction && (

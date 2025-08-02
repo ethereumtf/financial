@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useTransactionHistory } from '@/lib/transactionHistory'
 import { 
   ArrowUpRight, 
   ArrowDownLeft, 
@@ -48,89 +49,47 @@ export function SmartWalletTransactions({
 }: SmartWalletTransactionsProps) {
   const [filter, setFilter] = useState<'all' | 'gasless' | 'regular'>('all')
   const [copiedTx, setCopiedTx] = useState<string | null>(null)
+  const { getTransactions, getStats } = useTransactionHistory()
 
-  // Mock transaction data with smart wallet transactions
-  const transactions: Transaction[] = [
-    {
-      id: '1',
-      type: 'gasless',
-      description: 'Transfer to Alice',
-      amount: -0.05,
-      currency: 'ETH',
-      timestamp: '2 minutes ago',
-      status: 'completed',
-      hash: '0x7d8f9e2a1b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e',
-      gasUsed: 0,
-      gasPrice: 0,
-      isGasless: true,
-      walletType: 'smart',
-      to: '0x742d35Cc6639C0532fba96e5B11A7C8CfF7baB5E'
-    },
-    {
-      id: '2',
-      type: 'receive',
-      description: 'Received from Bob',
-      amount: 0.1,
-      currency: 'ETH',
-      timestamp: '1 hour ago',
-      status: 'completed',
-      hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
-      gasUsed: 21000,
-      gasPrice: 20,
-      isGasless: false,
-      walletType: 'eoa',
-      from: '0x8ba1f109551bD432803012645Hac136c29912'
-    },
-    {
-      id: '3',
-      type: 'batch',
-      description: 'Batch: Token approval + Swap',
-      amount: -0.02,
-      currency: 'ETH',
-      timestamp: '3 hours ago',
-      status: 'completed',
-      hash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
-      gasUsed: 0,
-      gasPrice: 0,
-      isGasless: true,
-      walletType: 'smart'
-    },
-    {
-      id: '4',
-      type: 'send',
-      description: 'Transfer to Contract',
-      amount: -0.01,
-      currency: 'ETH',
-      timestamp: '1 day ago',
-      status: 'pending',
-      hash: '0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
-      gasUsed: 45000,
-      gasPrice: 25,
-      isGasless: false,
-      walletType: 'eoa',
-      to: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984'
-    },
-    {
-      id: '5',
-      type: 'gasless',
-      description: 'DeFi Interaction',
-      amount: 0,
-      currency: 'ETH',
-      timestamp: '2 days ago',
-      status: 'completed',
-      hash: '0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b',
-      gasUsed: 0,
-      gasPrice: 0,
-      isGasless: true,
-      walletType: 'smart'
-    }
-  ]
+  // Get real transaction data
+  const transactions = getTransactions(filter)
+  const stats = getStats()
 
-  const filteredTransactions = transactions.filter(tx => {
-    if (filter === 'gasless') return tx.isGasless
-    if (filter === 'regular') return !tx.isGasless
-    return true
-  })
+  // Convert to component format
+  const formattedTransactions: Transaction[] = transactions.map(tx => ({
+    id: tx.id,
+    type: tx.type,
+    description: tx.description,
+    amount: tx.amount,
+    currency: tx.currency,
+    timestamp: formatTimestamp(tx.timestamp),
+    status: tx.status,
+    hash: tx.hash,
+    gasUsed: tx.gasUsed,
+    gasPrice: tx.gasPrice,
+    isGasless: tx.isGasless,
+    walletType: tx.walletType,
+    to: tx.to,
+    from: tx.from
+  }))
+
+  function formatTimestamp(timestamp: string): string {
+    const now = new Date()
+    const txTime = new Date(timestamp)
+    const diffMs = now.getTime() - txTime.getTime()
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+    if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+    return txTime.toLocaleDateString()
+  }
+
+  // Use the real transactions
+  const filteredTransactions = formattedTransactions
 
   const copyToClipboard = async (hash: string) => {
     try {
@@ -228,7 +187,7 @@ export function SmartWalletTransactions({
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-emerald-600">
-                {transactions.filter(tx => tx.isGasless).length}
+                {stats.gasless}
               </p>
               <p className="text-sm text-gray-600">Gasless Transactions</p>
             </div>
@@ -238,7 +197,7 @@ export function SmartWalletTransactions({
           <CardContent className="p-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-gray-900">
-                {transactions.filter(tx => !tx.isGasless).length}
+                {stats.regular}
               </p>
               <p className="text-sm text-gray-600">Regular Transactions</p>
             </div>
@@ -247,7 +206,9 @@ export function SmartWalletTransactions({
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">$0.00</p>
+              <p className="text-2xl font-bold text-green-600">
+                ${stats.gasSaved.toFixed(2)}
+              </p>
               <p className="text-sm text-gray-600">Gas Saved</p>
             </div>
           </CardContent>
@@ -255,7 +216,7 @@ export function SmartWalletTransactions({
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">100%</p>
+              <p className="text-2xl font-bold text-blue-600">{stats.successRate}%</p>
               <p className="text-sm text-gray-600">Success Rate</p>
             </div>
           </CardContent>
