@@ -30,7 +30,12 @@ const nextConfig = {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.netlify.app',
   },
   
-  // Webpack configuration
+  transpilePackages: [
+    '@alchemy/aa-core',
+    'abitype',
+    'zod',
+  ],
+
   webpack: (config, { isServer }) => {
     // Ensure proper path resolution
     config.resolve.alias = {
