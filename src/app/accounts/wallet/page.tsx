@@ -20,11 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export default function WalletPage() {
   const { user, loading, isWalletConnected, isAAReady, walletBalance, eoaBalance, sendTransaction, sendGaslessTransaction, signIn } = useAuth()
   const { addTransaction } = useTransactionHistory()
-  
-  // Debug: Log user object to see wallet addresses
-  console.log('🔍 Debug - User object:', user)
-  console.log('🔍 Debug - Smart wallet address:', user?.walletAddress)
-  console.log('🔍 Debug - EOA address:', user?.eoaAddress)
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
@@ -81,6 +76,20 @@ export default function WalletPage() {
     }
   ].filter(asset => asset.balance > 0) // Only show assets with balance
 
+  // Manual refresh function for testing
+  const refreshBalances = async () => {
+    console.log('🔄 Manually refreshing balances...')
+    if (typeof window !== 'undefined' && (window as any).checkUsdcBalance) {
+      const balance = await (window as any).checkUsdcBalance('0x98cDb60Dff9D36340caed6081AD237CD949c8552')
+      console.log('🔄 Manual refresh result:', balance)
+    }
+  }
+  
+  // Expose refresh function globally for debugging
+  if (typeof window !== 'undefined') {
+    (window as any).refreshBalances = refreshBalances
+  }
+
   const networks = [
     {
       id: 'sepolia',
@@ -106,24 +115,6 @@ export default function WalletPage() {
       icon: '💎'
     }
   ]
-  
-  // Debug: Log networks being passed to modal
-  console.log('🔍 Debug - Networks array:', networks)
-  
-  // Manual refresh function for testing
-  const refreshBalances = async () => {
-    console.log('🔄 Manually refreshing balances...')
-    if (typeof window !== 'undefined' && (window as any).checkUsdcBalance) {
-      const balance = await (window as any).checkUsdcBalance('0x98cDb60Dff9D36340caed6081AD237CD949c8552')
-      console.log('🔄 Manual refresh result:', balance)
-    }
-  }
-  
-  // Expose refresh function globally for debugging
-  if (typeof window !== 'undefined') {
-    (window as any).refreshBalances = refreshBalances
-  }
-
 
   const totalBalance = realAssets.reduce((sum, asset) => sum + asset.usdValue, 0)
 
