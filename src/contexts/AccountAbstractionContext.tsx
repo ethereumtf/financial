@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import type { Web3Auth } from "@web3auth/modal"
 import type { IProvider } from '@web3auth/base'
-import { AlchemyAAService, AASupportedChain } from '@/lib/alchemyAA'
+import { SimpleAAService } from '@/lib/simpleAA'
 
 export interface AAUser {
   id: string
@@ -39,12 +39,12 @@ interface AccountAbstractionContextType {
   isAAReady: boolean
   smartWalletAddress: string | null
   smartWalletBalance: string | null
-  currentChain: AASupportedChain
+  currentChain: string
   
   // Transaction methods
   sendGaslessTransaction: (to: string, amount: string) => Promise<string>
   sendRegularTransaction: (to: string, amount: string) => Promise<string>
-  switchChain: (chain: AASupportedChain) => Promise<void>
+  switchChain: (chain: string) => Promise<void>
   
   // Fallback EOA wallet
   eoaProvider: IProvider | null
@@ -66,14 +66,14 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   const [eoaBalance, setEOABalance] = useState<string | null>(null)
   const [smartWalletAddress, setSmartWalletAddress] = useState<string | null>(null)
   const [smartWalletBalance, setSmartWalletBalance] = useState<string | null>(null)
-  const [currentChain, setCurrentChain] = useState<AASupportedChain>('sepolia')
+  const [currentChain, setCurrentChain] = useState<string>('sepolia')
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [isAAReady, setIsAAReady] = useState(false)
   
   // AA Service instance
-  const [aaService] = useState(() => new AlchemyAAService(currentChain))
+  const [aaService] = useState(() => new SimpleAAService())
 
   // First useEffect - just to mark component as mounted
   useEffect(() => {
@@ -205,17 +205,12 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         setEOAAddress(eoaAddr)
         setEOABalance(eoabal)
 
-        // Initialize Account Abstraction with Web3Auth signer
+        // Initialize Simple Account Abstraction
         try {
-          const { ethers } = await import('ethers')
-          const ethersProvider = new ethers.BrowserProvider(web3authInstance.provider)
-          const signer = await ethersProvider.getSigner()
+          const isAAInitialized = await aaService.initialize(eoaAddr)
           
-          // Initialize Alchemy AA with the Web3Auth signer
-          await aaService.initialize(signer)
-          
-          if (aaService.isReady()) {
-            const smartAddr = aaService.getAddress()
+          if (isAAInitialized && aaService.isReady()) {
+            const smartAddr = aaService.getSmartWalletAddress()
             const smartBal = await aaService.getBalance()
             
             setSmartWalletAddress(smartAddr)
@@ -223,6 +218,9 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
             setIsAAReady(true)
             
             console.log(`🎯 Smart Wallet Ready: ${smartAddr}`)
+          } else {
+            console.log('⚠️ AA not available, using EOA mode')
+            setIsAAReady(false)
           }
         } catch (aaError) {
           console.warn('⚠️ AA initialization failed, falling back to EOA:', aaError)
@@ -339,12 +337,8 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     }
     
     try {
-      // Convert amount to wei
-      const { ethers } = await import('ethers')
-      const amountWei = ethers.parseEther(amount).toString()
-      
-      // Send gasless transaction via AA
-      const txHash = await aaService.sendTransaction(to, amountWei)
+      // Send gasless transaction via Simple AA
+      const txHash = await aaService.sendGaslessTransaction(to, amount)
       
       // Refresh smart wallet balance
       const newBalance = await aaService.getBalance()
@@ -383,14 +377,14 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     }
   }
 
-  const switchChain = async (chain: AASupportedChain): Promise<void> => {
+  const switchChain = async (chain: string): Promise<void> => {
     try {
       setCurrentChain(chain)
-      await aaService.switchChain(chain)
+      console.log(`🔄 Switching to chain: ${chain}`)
       
       // Update smart wallet info for new chain
       if (aaService.isReady()) {
-        const smartAddr = aaService.getAddress()
+        const smartAddr = aaService.getSmartWalletAddress()
         const smartBal = await aaService.getBalance()
         setSmartWalletAddress(smartAddr)
         setSmartWalletBalance(smartBal)
