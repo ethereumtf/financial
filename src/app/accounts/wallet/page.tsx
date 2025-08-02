@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { SmartWalletOverview } from '@/components/wallet/SmartWalletOverview'
+import { SmartWalletFeatures } from '@/components/wallet/SmartWalletFeatures'
+import { SmartWalletTransactions } from '@/components/wallet/SmartWalletTransactions'
+import { GaslessTransactionDemo } from '@/components/wallet/GaslessTransactionDemo'
 import { PortfolioHeader } from '@/components/wallet/PortfolioHeader'
 import { PrimaryActions } from '@/components/wallet/PrimaryActions'
 import { AssetList } from '@/components/wallet/AssetList'
@@ -10,6 +14,7 @@ import { DepositModal } from '@/components/wallet/DepositModal'
 import { WithdrawModal } from '@/components/wallet/WithdrawModal'
 import { TransactionReceiptModal } from '@/components/wallet/TransactionReceiptModal'
 import { useAuth } from '@/hooks/useAuth'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function WalletPage() {
   const { user, loading, isWalletConnected, isAAReady, walletBalance, eoaBalance, sendTransaction, sendGaslessTransaction, signIn } = useAuth()
@@ -206,43 +211,77 @@ export default function WalletPage() {
   return (
     <AuthGuard>
       <div className="space-y-8 pb-8 bg-gray-50 min-h-screen -m-6 p-6">
-      <div className="flex items-center justify-between pt-2">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-gray-600 text-lg">
-            {isAAReady ? 'Gasless transactions with Account Abstraction' : 'Smart wallet with EOA backup'}
-          </p>
-        </div>
-      </div>
-
-      <PortfolioHeader 
-        totalValue={totalBalance} 
-        isLoading={loading}
-        isAAReady={isAAReady}
-      />
-
-      <PrimaryActions
-        onDeposit={() => setShowDepositModal(true)}
-        onWithdraw={() => setShowWithdrawModal(true)}
-      />
-
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Your Stablecoins</h2>
-          <div className="text-sm text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-medium">
-            💰 {mockAssets.length} Assets
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Smart Wallet</h1>
+            <p className="text-gray-600 text-lg">
+              {isAAReady ? 'Account Abstraction • Gasless Transactions' : 'Smart Contract Wallet • EOA Backup'}
+            </p>
           </div>
         </div>
-        <AssetList 
-          assets={mockAssets}
-          onAssetClick={handleAssetClick}
-        />
-      </div>
 
-      <ActivityHistory 
-        transactions={mockTransactions}
-        onTransactionClick={handleTransactionClick}
-      />
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="features">Features</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="demo">Try Demo</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-8">
+            <SmartWalletOverview
+              smartWalletAddress={user?.walletAddress || null}
+              eoaAddress={user?.eoaAddress || null}
+              smartWalletBalance={walletBalance}
+              eoaBalance={eoaBalance}
+              isAAReady={isAAReady}
+              currentChain="sepolia"
+            />
+
+            <PortfolioHeader 
+              totalValue={totalBalance} 
+              isLoading={loading}
+              isAAReady={isAAReady}
+            />
+
+            <PrimaryActions
+              onDeposit={() => setShowDepositModal(true)}
+              onWithdraw={() => setShowWithdrawModal(true)}
+            />
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Your Stablecoins</h2>
+                <div className="text-sm text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full font-medium">
+                  💰 {mockAssets.length} Assets
+                </div>
+              </div>
+              <AssetList 
+                assets={mockAssets}
+                onAssetClick={handleAssetClick}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="features">
+            <SmartWalletFeatures isAAReady={isAAReady} />
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <SmartWalletTransactions 
+              isAAReady={isAAReady}
+              smartWalletAddress={user?.walletAddress || null}
+              eoaAddress={user?.eoaAddress || null}
+            />
+          </TabsContent>
+
+          <TabsContent value="demo">
+            <GaslessTransactionDemo 
+              isAAReady={isAAReady}
+              smartWalletAddress={user?.walletAddress || null}
+            />
+          </TabsContent>
+        </Tabs>
 
       <DepositModal
         open={showDepositModal}
