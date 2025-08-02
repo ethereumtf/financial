@@ -62,10 +62,10 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null)
   const [eoaProvider, setEOAProvider] = useState<IProvider | null>(null)
   const [user, setUser] = useState<AAUser | null>(null)
-  const [eoaAddress, setEOAAddress] = useState<string>('')
-  const [eoaBalance, setEOABalance] = useState<string>('0')
-  const [smartWalletAddress, setSmartWalletAddress] = useState<string>('')
-  const [smartWalletBalance, setSmartWalletBalance] = useState<string>('0')
+  const [eoaAddress, setEOAAddress] = useState<string | null>(null)
+  const [eoaBalance, setEOABalance] = useState<string | null>(null)
+  const [smartWalletAddress, setSmartWalletAddress] = useState<string | null>(null)
+  const [smartWalletBalance, setSmartWalletBalance] = useState<string | null>(null)
   const [currentChain, setCurrentChain] = useState<string>('sepolia')
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -197,27 +197,21 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       // Get user info from Web3Auth
       const userInfo = await web3authInstance.getUserInfo()
       
-      // Initialize with default values
-      let eoaAddr = eoaAddress
-      let eoabal = '0'
-      let smartAddr = smartWalletAddress
-      let smartBal = '0'
-      
       // Get EOA wallet info
       if (web3authInstance.provider) {
-        eoaAddr = (await getEOAAddress(web3authInstance.provider)) || eoaAddress
-        eoabal = (await getEOABalance(web3authInstance.provider, eoaAddr)) || '0'
+        const eoaAddr = await getEOAAddress(web3authInstance.provider)
+        const eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
         
         setEOAAddress(eoaAddr)
         setEOABalance(eoabal)
 
         // Initialize Simple Account Abstraction
         try {
-          const isAAInitialized = await aaService.initialize(eoaAddr || '')
+          const isAAInitialized = await aaService.initialize(eoaAddr)
           
           if (isAAInitialized && aaService.isReady()) {
-            smartAddr = aaService.getSmartWalletAddress() || ''
-            smartBal = (await aaService.getBalance()) || '0'
+            const smartAddr = aaService.getSmartWalletAddress()
+            const smartBal = await aaService.getBalance()
             
             setSmartWalletAddress(smartAddr)
             setSmartWalletBalance(smartBal)
@@ -234,16 +228,16 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         }
       }
       
-      // Create unified user object with fallback values
+      // Create unified user object
       const aaUser: AAUser = {
         id: userInfo.verifierId || `web3auth_${Date.now()}`,
         email: userInfo.email || '',
         name: userInfo.name || userInfo.email || 'Anonymous User',
         image: userInfo.profileImage,
-        smartWalletAddress: smartAddr || undefined,
-        smartWalletBalance: smartBal,
-        eoaAddress: eoaAddr || undefined,
-        eoaBalance: eoabal,
+        smartWalletAddress: smartWalletAddress,
+        smartWalletBalance: smartWalletBalance,
+        eoaAddress: eoaAddress,
+        eoaBalance: eoaBalance,
         accountType: 'personal',
         preferences: {
           currency: 'USDC',
@@ -259,26 +253,26 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     }
   }
 
-  const getEOAAddress = async (provider: IProvider): Promise<string> => {
+  const getEOAAddress = async (provider: IProvider): Promise<string | null> => {
     try {
       const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const signer = await ethersProvider.getSigner()
-      return (await signer.getAddress()) || ''
+      return await signer.getAddress()
     } catch (error) {
       console.error('Get EOA address error:', error)
-      return ''
+      return null
     }
   }
 
-  const getEOABalance = async (provider: IProvider, address: string): Promise<string> => {
+  const getEOABalance = async (provider: IProvider, address: string | null): Promise<string> => {
     if (!address) return '0'
     
     try {
       const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const balance = await ethersProvider.getBalance(address)
-      return ethers.formatEther(balance) || '0'
+      return ethers.formatEther(balance)
     } catch (error) {
       console.error('Get EOA balance error:', error)
       return '0'
@@ -392,7 +386,7 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       if (aaService.isReady()) {
         const smartAddr = aaService.getSmartWalletAddress()
         const smartBal = await aaService.getBalance()
-        setSmartWalletAddress(smartAddr || '')
+        setSmartWalletAddress(smartAddr)
         setSmartWalletBalance(smartBal)
       }
     } catch (error) {
@@ -401,23 +395,22 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
     }
   }
 
-  // Create context value with proper null checks
-  const contextValue: AccountAbstractionContextType = {
+  const value: AccountAbstractionContextType = {
     user,
     isAuthenticated: !!user && !!web3auth?.connected,
     isLoading: isLoading || !isInitialized || !isMounted,
     login,
     logout,
     isAAReady,
-    smartWalletAddress: smartWalletAddress || null,
-    smartWalletBalance: smartWalletBalance || '0',
+    smartWalletAddress,
+    smartWalletBalance,
     currentChain,
     sendGaslessTransaction,
     sendRegularTransaction,
     switchChain,
     eoaProvider,
-    eoaAddress: eoaAddress || null,
-    eoaBalance: eoaBalance || '0',
+    eoaAddress,
+    eoaBalance,
   }
 
   // Don't render anything until we're mounted (client-side)
@@ -431,14 +424,14 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         logout: async () => {},
         isAAReady: false,
         smartWalletAddress: null,
-        smartWalletBalance: '0',
+        smartWalletBalance: null,
         currentChain: 'sepolia',
         sendGaslessTransaction: async () => { throw new Error('Not initialized') },
         sendRegularTransaction: async () => { throw new Error('Not initialized') },
         switchChain: async () => { throw new Error('Not initialized') },
         eoaProvider: null,
         eoaAddress: null,
-        eoaBalance: '0',
+        eoaBalance: null,
       }}>
         {children}
       </AccountAbstractionContext.Provider>
@@ -446,7 +439,7 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   }
 
   return (
-    <AccountAbstractionContext.Provider value={contextValue}>
+    <AccountAbstractionContext.Provider value={value}>
       {children}
     </AccountAbstractionContext.Provider>
   )
