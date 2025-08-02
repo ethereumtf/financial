@@ -111,21 +111,14 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4GjjGKm6bKJ_fJukNQjc9aYAM"
         const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY
 
-        // Use a fallback RPC if Alchemy key is not available
-        const sepoliaRpcTarget = alchemyKey 
-          ? `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`
-          : "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
-
-        console.log('🔍 Configuring Web3Auth for Sepolia with RPC:', sepoliaRpcTarget)
-
         const web3authInstance = new Web3Auth({
           clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
+          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
           chainConfig: {
             chainNamespace: CHAIN_NAMESPACES.EIP155,
-            chainId: "0xaa36a7", // Sepolia testnet (11155111)
-            rpcTarget: sepoliaRpcTarget,
-            displayName: "Ethereum Sepolia Testnet",
+            chainId: "0xaa36a7", // Sepolia for AA support
+            rpcTarget: `https://eth-sepolia.g.alchemy.com/v2/${alchemyKey}`,
+            displayName: "Ethereum Sepolia",
             blockExplorerUrl: "https://sepolia.etherscan.io",
             ticker: "ETH",
             tickerName: "Ethereum",
@@ -182,18 +175,6 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
 
         // Check if user was previously authenticated
         if (web3authInstance.connected && web3authInstance.provider) {
-          // Verify network configuration after connection
-          const { ethers } = await import('ethers')
-          const ethersProvider = new ethers.BrowserProvider(web3authInstance.provider)
-          const network = await ethersProvider.getNetwork()
-          console.log(`🔍 Web3Auth connected to network: ${network.name} (chainId: ${network.chainId})`)
-          
-          if (network.chainId !== 11155111n) {
-            console.warn(`⚠️ Expected Sepolia (11155111) but connected to chainId: ${network.chainId}`)
-          } else {
-            console.log('✅ Correctly connected to Sepolia testnet')
-          }
-          
           setEOAProvider(web3authInstance.provider)
           await syncUserData(web3authInstance)
         }
@@ -413,17 +394,6 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       const web3authProvider = await web3auth.connect()
       
       if (web3authProvider) {
-        // Verify we're connected to Sepolia after login
-        const { ethers } = await import('ethers')
-        const ethersProvider = new ethers.BrowserProvider(web3authProvider)
-        const network = await ethersProvider.getNetwork()
-        console.log(`🔍 After login - connected to network: ${network.name} (chainId: ${network.chainId})`)
-        
-        if (network.chainId !== 11155111n) {
-          console.error(`❌ Wrong network! Expected Sepolia (11155111) but got chainId: ${network.chainId}`)
-          return { success: false, error: `Wrong network: connected to ${network.name} instead of Sepolia` }
-        }
-        
         setEOAProvider(web3authProvider)
         await syncUserData(web3auth)
         return { success: true }

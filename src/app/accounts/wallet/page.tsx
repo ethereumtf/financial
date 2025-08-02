@@ -124,9 +124,6 @@ export default function WalletPage() {
     (window as any).refreshBalances = refreshBalances
   }
 
-  // Add refresh button in development
-  const showRefreshButton = process.env.NODE_ENV === 'development'
-
 
   const totalBalance = realAssets.reduce((sum, asset) => sum + asset.usdValue, 0)
 
@@ -270,14 +267,6 @@ export default function WalletPage() {
               {isAAReady ? 'Account Abstraction • Gasless Transactions' : 'Smart Contract Wallet • EOA Backup'}
             </p>
           </div>
-          {showRefreshButton && (
-            <button
-              onClick={refreshBalances}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-            >
-              🔄 Refresh USDC
-            </button>
-          )}
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
