@@ -139,7 +139,7 @@ export function UnifiedAuthProvider({ children }: UnifiedAuthProviderProps) {
         })
 
         setWeb3auth(web3authInstance)
-        await web3authInstance.initModal()
+        await web3authInstance.init()
         console.log('Web3Auth initialized successfully')
         setIsInitialized(true)
 

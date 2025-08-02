@@ -36,7 +36,7 @@ export function Web3AuthProvider({ children }: Web3AuthProviderProps) {
   useEffect(() => {
     const init = async () => {
       try {
-        await web3auth.initModal()
+        await web3auth.init()
         if (web3auth.connected && web3auth.provider) {
           setProvider(web3auth.provider)
           setIsConnected(true)

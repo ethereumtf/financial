@@ -60,7 +60,7 @@ class UnifiedAuthManager {
 
   private async initialize() {
     try {
-      await web3auth.initModal()
+      await web3auth.init()
       
       // Check if user was previously authenticated
       if (web3auth.connected && web3auth.provider) {
