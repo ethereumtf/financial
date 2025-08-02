@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Dialog, 
   DialogContent, 
@@ -68,13 +68,26 @@ export function EnhancedWithdrawModal({
   onConfirmWithdraw,
   isAAReady
 }: EnhancedWithdrawModalProps) {
-  const [selectedAsset, setSelectedAsset] = useState<Asset>(assets[0])
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(assets?.[0] || null)
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks?.[0] || null)
   const [recipientAddress, setRecipientAddress] = useState('')
   const [amount, setAmount] = useState('')
   const [useGasless, setUseGasless] = useState(isAAReady)
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
+
+  // Update selectedAsset and selectedNetwork when props change
+  useEffect(() => {
+    if (assets?.length > 0 && !selectedAsset) {
+      setSelectedAsset(assets[0])
+    }
+  }, [assets, selectedAsset])
+
+  useEffect(() => {
+    if (networks?.length > 0 && !selectedNetwork) {
+      setSelectedNetwork(networks[0])
+    }
+  }, [networks, selectedNetwork])
 
   const quickRecipients = [
     { 
@@ -98,7 +111,7 @@ export function EnhancedWithdrawModal({
   ]
 
   const handleSendTransaction = async () => {
-    if (!recipientAddress || !amount || !selectedAsset) return
+    if (!recipientAddress || !amount || !selectedAsset || !selectedNetwork) return
 
     setIsLoading(true)
     try {
@@ -129,7 +142,7 @@ export function EnhancedWithdrawModal({
 
   const calculateGasFee = () => {
     if (useGasless && isAAReady) return 0
-    return selectedNetwork.fee
+    return selectedNetwork?.fee || 0
   }
 
   const calculateTotal = () => {
@@ -140,7 +153,7 @@ export function EnhancedWithdrawModal({
 
   const getMaxAmount = () => {
     const gasFee = calculateGasFee()
-    return Math.max(0, selectedAsset.balance - gasFee)
+    return Math.max(0, (selectedAsset?.balance || 0) - gasFee)
   }
 
   const setMaxAmount = () => {
@@ -154,15 +167,31 @@ export function EnhancedWithdrawModal({
     if (!recipientAddress) return { valid: false, error: 'Recipient address required' }
     if (!amount) return { valid: false, error: 'Amount required' }
     if (transferAmount <= 0) return { valid: false, error: 'Amount must be greater than 0' }
-    if (transferAmount < (selectedAsset.minimumWithdraw || 0)) {
-      return { valid: false, error: `Minimum withdrawal: ${selectedAsset.minimumWithdraw} ${selectedAsset.symbol}` }
+    if (transferAmount < (selectedAsset?.minimumWithdraw || 0)) {
+      return { valid: false, error: `Minimum withdrawal: ${selectedAsset?.minimumWithdraw} ${selectedAsset?.symbol}` }
     }
-    if (total > selectedAsset.balance) return { valid: false, error: 'Insufficient balance' }
+    if (total > (selectedAsset?.balance || 0)) return { valid: false, error: 'Insufficient balance' }
     
     return { valid: true, error: null }
   }
 
   const validation = validateTransaction()
+
+  // Don't render if no assets are available
+  if (!assets || assets.length === 0) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <div className="text-center py-8">
+            <p className="text-gray-600">No assets available for withdrawal</p>
+            <Button onClick={() => onOpenChange(false)} className="mt-4">
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   if (showConfirmation) {
     return (
@@ -176,7 +205,7 @@ export function EnhancedWithdrawModal({
             </p>
             <div className="bg-emerald-50 rounded-lg p-4 mb-4">
               <p className="text-sm text-emerald-700">
-                <strong>{amount} {selectedAsset.symbol}</strong> sent to <strong>{formatAddress(recipientAddress)}</strong>
+                <strong>{amount} {selectedAsset?.symbol}</strong> sent to <strong>{formatAddress(recipientAddress)}</strong>
               </p>
               {useGasless && (
                 <p className="text-xs text-emerald-600 mt-1">✨ No gas fees charged!</p>
@@ -210,7 +239,7 @@ export function EnhancedWithdrawModal({
                 <Card 
                   key={asset.id}
                   className={`cursor-pointer transition-all border-2 ${
-                    selectedAsset.id === asset.id 
+                    selectedAsset?.id === asset.id 
                       ? 'border-blue-500 bg-blue-50' 
                       : 'border-gray-200 hover:border-blue-300'
                   }`}
@@ -233,7 +262,7 @@ export function EnhancedWithdrawModal({
                           ≈ ${asset.usdValue.toLocaleString()}
                         </p>
                       </div>
-                      {selectedAsset.id === asset.id && (
+                      {selectedAsset?.id === asset.id && (
                         <CheckCircle className="w-5 h-5 text-blue-600" />
                       )}
                     </div>
@@ -288,7 +317,7 @@ export function EnhancedWithdrawModal({
                       <div className="flex-1">
                         <p className="font-medium">Regular Transaction</p>
                         <p className="text-sm text-gray-600">
-                          {selectedNetwork.fee} ETH fee
+                          {selectedNetwork?.fee} ETH fee
                         </p>
                       </div>
                       {!useGasless && (
@@ -350,7 +379,7 @@ export function EnhancedWithdrawModal({
                 onClick={setMaxAmount}
                 className="text-xs text-blue-600 hover:text-blue-700"
               >
-                Max: {getMaxAmount().toFixed(4)} {selectedAsset.symbol}
+                Max: {getMaxAmount().toFixed(4)} {selectedAsset?.symbol}
               </Button>
             </div>
             <div className="relative">
@@ -364,12 +393,12 @@ export function EnhancedWithdrawModal({
                 className="pr-16"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">
-                {selectedAsset.symbol}
+                {selectedAsset?.symbol}
               </div>
             </div>
             {amount && (
               <p className="text-sm text-gray-600">
-                ≈ ${(parseFloat(amount) * (selectedAsset.usdValue / selectedAsset.balance)).toLocaleString()}
+                ≈ ${(parseFloat(amount) * ((selectedAsset?.usdValue || 0) / (selectedAsset?.balance || 1))).toLocaleString()}
               </p>
             )}
           </div>
@@ -386,7 +415,7 @@ export function EnhancedWithdrawModal({
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Amount:</span>
-                    <span className="font-semibold">{amount} {selectedAsset.symbol}</span>
+                    <span className="font-semibold">{amount} {selectedAsset?.symbol}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Network Fee:</span>
@@ -396,13 +425,13 @@ export function EnhancedWithdrawModal({
                   </div>
                   <div className="border-t pt-2 flex justify-between font-semibold">
                     <span>Total Cost:</span>
-                    <span>{calculateTotal().toFixed(4)} {selectedAsset.symbol}</span>
+                    <span>{calculateTotal().toFixed(4)} {selectedAsset?.symbol}</span>
                   </div>
                   
                   <div className="flex items-center space-x-4 text-xs text-gray-600 pt-2">
                     <div className="flex items-center space-x-1">
                       <Clock className="w-3 h-3" />
-                      <span>{selectedNetwork.estimatedTime}</span>
+                      <span>{selectedNetwork?.estimatedTime}</span>
                     </div>
                     {useGasless && (
                       <Badge className="bg-emerald-100 text-emerald-800 text-xs">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Dialog, 
   DialogContent, 
@@ -55,11 +55,18 @@ export function EnhancedDepositModal({
   currentBalance,
   isAAReady
 }: EnhancedDepositModalProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState<Network>(networks[0])
+  const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(networks?.[0] || null)
   const [selectedMethod, setSelectedMethod] = useState<'crypto' | 'card' | 'bank'>('crypto')
   const [amount, setAmount] = useState('')
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
   const [useSmartWallet, setUseSmartWallet] = useState(true)
+
+  // Update selectedNetwork when networks prop changes
+  useEffect(() => {
+    if (networks?.length > 0 && !selectedNetwork) {
+      setSelectedNetwork(networks[0])
+    }
+  }, [networks, selectedNetwork])
 
   const copyToClipboard = async (address: string, type: string) => {
     try {
@@ -76,7 +83,8 @@ export function EnhancedDepositModal({
   }
 
   const getCurrentAddress = () => {
-    return useSmartWallet ? selectedNetwork.smartWalletAddress : selectedNetwork.eoaAddress
+    const address = useSmartWallet ? selectedNetwork?.smartWalletAddress : selectedNetwork?.eoaAddress
+    return address || ''
   }
 
   const getAddressType = () => {
@@ -89,8 +97,8 @@ export function EnhancedDepositModal({
       name: 'Crypto Transfer',
       description: 'Send from another wallet',
       icon: ArrowDownLeft,
-      time: selectedNetwork.estimatedTime,
-      fee: selectedNetwork.fee,
+      time: selectedNetwork?.estimatedTime || '30 seconds',
+      fee: selectedNetwork?.fee || 0,
       available: true
     },
     {
@@ -114,6 +122,22 @@ export function EnhancedDepositModal({
   ]
 
   const currentMethod = depositMethods.find(m => m.id === selectedMethod)
+
+  // Don't render if no networks are available
+  if (!networks || networks.length === 0) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <div className="text-center py-8">
+            <p className="text-gray-600">No networks available</p>
+            <Button onClick={() => onOpenChange(false)} className="mt-4">
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -174,7 +198,7 @@ export function EnhancedDepositModal({
                     <Card 
                       key={network.id}
                       className={`cursor-pointer transition-all border-2 ${
-                        selectedNetwork.id === network.id 
+                        selectedNetwork?.id === network.id 
                           ? 'border-emerald-500 bg-emerald-50' 
                           : 'border-gray-200 hover:border-emerald-300'
                       }`}
@@ -197,7 +221,7 @@ export function EnhancedDepositModal({
                               {network.fee === 0 ? 'No fees' : `${network.fee} ETH fee`}
                             </p>
                           </div>
-                          {selectedNetwork.id === network.id && (
+                          {selectedNetwork?.id === network.id && (
                             <CheckCircle className="w-5 h-5 text-emerald-600" />
                           )}
                         </div>
@@ -277,7 +301,7 @@ export function EnhancedDepositModal({
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-emerald-700 mb-2">
-                          Send {selectedNetwork.displayName} to this address:
+                          Send {selectedNetwork?.displayName} to this address:
                         </p>
                         <div className="bg-white rounded-lg p-4 border border-emerald-200">
                           <p className="font-mono text-sm break-all text-gray-900">
@@ -315,11 +339,11 @@ export function EnhancedDepositModal({
                       <div>
                         <p className="font-medium">Important:</p>
                         <ul className="list-disc list-inside mt-1 space-y-1">
-                          <li>Only send {selectedNetwork.displayName} tokens to this address</li>
-                          <li>Minimum deposit: {selectedNetwork.minimumDeposit} ETH</li>
-                          <li>Transactions typically take {selectedNetwork.estimatedTime}</li>
-                          {selectedNetwork.fee > 0 && (
-                            <li>Network fee: {selectedNetwork.fee} ETH</li>
+                          <li>Only send {selectedNetwork?.displayName} tokens to this address</li>
+                          <li>Minimum deposit: {selectedNetwork?.minimumDeposit} ETH</li>
+                          <li>Transactions typically take {selectedNetwork?.estimatedTime}</li>
+                          {(selectedNetwork?.fee || 0) > 0 && (
+                            <li>Network fee: {selectedNetwork?.fee} ETH</li>
                           )}
                         </ul>
                       </div>
@@ -336,7 +360,7 @@ export function EnhancedDepositModal({
                       <Clock className="w-5 h-5 text-blue-600" />
                       <div>
                         <p className="text-sm font-medium">Processing Time</p>
-                        <p className="text-xs text-gray-600">{selectedNetwork.estimatedTime}</p>
+                        <p className="text-xs text-gray-600">{selectedNetwork?.estimatedTime}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
