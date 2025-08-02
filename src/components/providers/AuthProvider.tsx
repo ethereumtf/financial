@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, ReactNode } from 'react'
-import { useUnifiedAuth, UnifiedUser } from '@/contexts/UnifiedAuthContext'
+import { useAccountAbstraction, AAUser } from '@/contexts/AccountAbstractionContext'
 
 // Maintain backward compatibility with existing User interface
 export interface User {
@@ -9,52 +9,64 @@ export interface User {
   email: string
   name: string
   image?: string
-  // Extended properties from UnifiedUser
-  walletAddress?: string
-  walletBalance?: string
+  // Extended properties from AAUser (Account Abstraction)
+  walletAddress?: string // Smart wallet address
+  walletBalance?: string // Smart wallet balance
+  eoaAddress?: string // EOA fallback address
+  eoaBalance?: string // EOA fallback balance
   accountType?: 'personal' | 'business' | 'premium'
 }
 
 export interface AuthContextType {
   user: User | null
   loading: boolean
-  // Unified authentication methods - now using Web3Auth
+  // Account Abstraction authentication methods
   signIn: () => Promise<{ success: boolean; error?: string }>
   signUp: () => Promise<{ success: boolean; error?: string }> // Will redirect to same login
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }> // Will redirect to same login
   signOut: () => Promise<void>
-  // Additional wallet capabilities
+  // Account Abstraction capabilities
   isWalletConnected: boolean
-  walletBalance: string | null
-  sendTransaction: (to: string, amount: string) => Promise<string>
+  isAAReady: boolean // New: indicates if gasless transactions are available
+  walletBalance: string | null // Smart wallet balance
+  eoaBalance: string | null // EOA balance for fallback
+  sendTransaction: (to: string, amount: string) => Promise<string> // Prefers gasless when available
+  sendGaslessTransaction: (to: string, amount: string) => Promise<string> // Force gasless
+  sendRegularTransaction: (to: string, amount: string) => Promise<string> // Force EOA
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { 
-    user: unifiedUser, 
+    user: aaUser, 
     isAuthenticated, 
     isLoading, 
     login, 
     logout, 
-    isWalletConnected,
-    walletBalance,
-    sendTransaction 
-  } = useUnifiedAuth()
+    isAAReady,
+    smartWalletAddress,
+    smartWalletBalance,
+    eoaAddress,
+    eoaBalance,
+    sendGaslessTransaction,
+    sendRegularTransaction 
+  } = useAccountAbstraction()
 
-  // Convert UnifiedUser to User interface for backward compatibility
-  const user: User | null = unifiedUser ? {
-    id: unifiedUser.id,
-    email: unifiedUser.email,
-    name: unifiedUser.name,
-    image: unifiedUser.image,
-    walletAddress: unifiedUser.walletAddress,
-    walletBalance: unifiedUser.walletBalance,
-    accountType: unifiedUser.accountType
+  // Convert AAUser to User interface for backward compatibility
+  const user: User | null = aaUser ? {
+    id: aaUser.id,
+    email: aaUser.email,
+    name: aaUser.name,
+    image: aaUser.image,
+    walletAddress: aaUser.smartWalletAddress, // Prioritize smart wallet
+    walletBalance: aaUser.smartWalletBalance,
+    eoaAddress: aaUser.eoaAddress,
+    eoaBalance: aaUser.eoaBalance,
+    accountType: aaUser.accountType
   } : null
 
-  // Unified sign-in using Web3Auth (supports both email and Google)
+  // Account Abstraction sign-in using Web3Auth (supports both email and Google)
   const signIn = async (): Promise<{ success: boolean; error?: string }> => {
     return await login()
   }
@@ -74,6 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await logout()
   }
 
+  // Smart transaction handler - prefers gasless when available
+  const sendTransaction = async (to: string, amount: string): Promise<string> => {
+    if (isAAReady) {
+      console.log('🚀 Using gasless transaction via Account Abstraction')
+      return await sendGaslessTransaction(to, amount)
+    } else {
+      console.log('⚠️ Falling back to regular EOA transaction')
+      return await sendRegularTransaction(to, amount)
+    }
+  }
+
   const value: AuthContextType = {
     user,
     loading: isLoading,
@@ -81,9 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signInWithGoogle,
     signOut,
-    isWalletConnected,
-    walletBalance,
-    sendTransaction
+    isWalletConnected: !!user,
+    isAAReady,
+    walletBalance: smartWalletBalance,
+    eoaBalance,
+    sendTransaction,
+    sendGaslessTransaction,
+    sendRegularTransaction
   }
 
   return (

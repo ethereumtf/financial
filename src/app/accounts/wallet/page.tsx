@@ -12,7 +12,7 @@ import { TransactionReceiptModal } from '@/components/wallet/TransactionReceiptM
 import { useAuth } from '@/hooks/useAuth'
 
 export default function WalletPage() {
-  const { user, loading, isWalletConnected, walletBalance, sendTransaction, showLogin } = useAuth()
+  const { user, loading, isWalletConnected, isAAReady, walletBalance, eoaBalance, sendTransaction, sendGaslessTransaction, signIn } = useAuth()
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
@@ -94,7 +94,7 @@ export default function WalletPage() {
   const handleCreateWallet = async () => {
     try {
       setIsCreatingWallet(true)
-      await showLogin()
+      await signIn()
     } catch (error) {
       console.error('Failed to create wallet:', error)
     } finally {
@@ -162,20 +162,24 @@ export default function WalletPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome to Your Smart Wallet</h1>
           <p className="text-gray-600 max-w-lg text-lg leading-relaxed">
-            Create your Account Abstraction wallet powered by Web3Auth for seamless, secure transactions.
+            Create your Account Abstraction wallet powered by Alchemy + Web3Auth for truly gasless transactions.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 text-sm text-gray-500 mt-6">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-              No gas fees
+              Gasless transactions
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              Social login
+              Google & Email login
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-              Enhanced security
+              Smart contract wallet
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+              EOA backup
             </div>
           </div>
         </div>
@@ -205,13 +209,16 @@ export default function WalletPage() {
       <div className="flex items-center justify-between pt-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-gray-600 text-lg">Manage your stablecoins with zero fees</p>
+          <p className="text-gray-600 text-lg">
+            {isAAReady ? 'Gasless transactions with Account Abstraction' : 'Smart wallet with EOA backup'}
+          </p>
         </div>
       </div>
 
       <PortfolioHeader 
         totalValue={totalBalance} 
         isLoading={loading}
+        isAAReady={isAAReady}
       />
 
       <PrimaryActions

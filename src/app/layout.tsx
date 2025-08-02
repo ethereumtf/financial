@@ -4,7 +4,7 @@ import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import { UnifiedAuthProvider } from "@/contexts/UnifiedAuthContext";
+import { AccountAbstractionProvider } from "@/contexts/AccountAbstractionContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,12 +24,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <UnifiedAuthProvider>
+        <AccountAbstractionProvider>
           <AuthProvider>
             {children}
             <Toaster />
           </AuthProvider>
-        </UnifiedAuthProvider>
+        </AccountAbstractionProvider>
       </body>
     </html>
   );

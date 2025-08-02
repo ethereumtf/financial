@@ -8,9 +8,10 @@ interface PortfolioHeaderProps {
   totalValue: number
   currency?: string
   isLoading?: boolean
+  isAAReady?: boolean
 }
 
-export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = false }: PortfolioHeaderProps) {
+export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = false, isAAReady = false }: PortfolioHeaderProps) {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true)
 
   const formatCurrency = (amount: number) => {
@@ -66,9 +67,15 @@ export function PortfolioHeader({ totalValue, currency = 'USD', isLoading = fals
         <p className="text-sm font-medium text-emerald-600">
           Available to spend
         </p>
-        <div className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">
-          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-          Smart Wallet Active
+        <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+          isAAReady 
+            ? 'text-emerald-600 bg-emerald-100' 
+            : 'text-orange-600 bg-orange-100'
+        }`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${
+            isAAReady ? 'bg-emerald-500' : 'bg-orange-500'
+          }`}></div>
+          {isAAReady ? 'Gasless Mode Active' : 'EOA Backup Mode'}
         </div>
       </div>
     </div>
