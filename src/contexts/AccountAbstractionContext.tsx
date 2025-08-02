@@ -204,27 +204,37 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       let smartBal: string | null = null
       
       if (web3authInstance.provider) {
+        console.log('🔍 Web3Auth provider available, getting addresses...')
         eoaAddr = await getEOAAddress(web3authInstance.provider)
         eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
+        
+        console.log('🔍 Addresses calculated:')
+        console.log('  EOA Address:', eoaAddr)
+        console.log('  EOA Balance:', eoabal)
         
         setEOAAddress(eoaAddr)
         setEOABalance(eoabal)
 
         // Initialize Simple Account Abstraction
         try {
-          const isAAInitialized = await aaService.initialize(eoaAddr || '')
-          
-          if (isAAInitialized && aaService.isReady()) {
-            smartAddr = aaService.getSmartWalletAddress()
-            smartBal = await aaService.getBalance()
+          if (eoaAddr) {
+            const isAAInitialized = await aaService.initialize(eoaAddr)
             
-            setSmartWalletAddress(smartAddr)
-            setSmartWalletBalance(smartBal)
-            setIsAAReady(true)
-            
-            console.log(`🎯 Smart Wallet Ready: ${smartAddr}`)
+            if (isAAInitialized && aaService.isReady()) {
+              smartAddr = aaService.getSmartWalletAddress()
+              smartBal = await aaService.getBalance()
+              
+              setSmartWalletAddress(smartAddr)
+              setSmartWalletBalance(smartBal)
+              setIsAAReady(true)
+              
+              console.log(`🎯 Smart Wallet Ready: ${smartAddr}`)
+            } else {
+              console.log('⚠️ AA not available, using EOA mode')
+              setIsAAReady(false)
+            }
           } else {
-            console.log('⚠️ AA not available, using EOA mode')
+            console.log('⚠️ No EOA address available')
             setIsAAReady(false)
           }
         } catch (aaError) {
@@ -250,6 +260,12 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
           twoFactorAuth: false
         }
       }
+      
+      // Debug: Log the user object being created
+      console.log('🔍 AccountAbstraction - Creating user with addresses:')
+      console.log('  Smart wallet:', smartAddr)
+      console.log('  EOA address:', eoaAddr)
+      console.log('  User object:', aaUser)
 
       setUser(aaUser)
       localStorage.setItem('aa_auth_user', JSON.stringify(aaUser))
@@ -260,12 +276,15 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
 
   const getEOAAddress = async (provider: IProvider): Promise<string | null> => {
     try {
+      console.log('🔍 Getting EOA address from provider...')
       const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       const signer = await ethersProvider.getSigner()
-      return await signer.getAddress()
+      const address = await signer.getAddress()
+      console.log('🔍 EOA address obtained:', address)
+      return address
     } catch (error) {
-      console.error('Get EOA address error:', error)
+      console.error('❌ Get EOA address error:', error)
       return null
     }
   }

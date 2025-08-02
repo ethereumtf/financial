@@ -20,6 +20,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 export default function WalletPage() {
   const { user, loading, isWalletConnected, isAAReady, walletBalance, eoaBalance, sendTransaction, sendGaslessTransaction, signIn } = useAuth()
   const { addTransaction } = useTransactionHistory()
+  
+  // Debug: Log user object to see wallet addresses
+  console.log('🔍 Debug - User object:', user)
+  console.log('🔍 Debug - Smart wallet address:', user?.walletAddress)
+  console.log('🔍 Debug - EOA address:', user?.eoaAddress)
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
@@ -78,6 +83,9 @@ export default function WalletPage() {
       icon: '💎'
     }
   ]
+  
+  // Debug: Log networks being passed to modal
+  console.log('🔍 Debug - Networks array:', networks)
 
 
   const totalBalance = realAssets.reduce((sum, asset) => sum + asset.usdValue, 0)

@@ -68,6 +68,16 @@ export function EnhancedDepositModal({
     }
   }, [networks, selectedNetwork])
 
+  // Debug: Log address display issue
+  useEffect(() => {
+    if (selectedNetwork) {
+      console.log('🔍 DepositModal - Selected network:', selectedNetwork)
+      console.log('🔍 DepositModal - Smart wallet address:', selectedNetwork.smartWalletAddress)
+      console.log('🔍 DepositModal - EOA address:', selectedNetwork.eoaAddress)
+      console.log('🔍 DepositModal - Current address (useSmartWallet=' + useSmartWallet + '):', getCurrentAddress())
+    }
+  }, [selectedNetwork, useSmartWallet])
+
   const copyToClipboard = async (address: string, type: string) => {
     try {
       await navigator.clipboard.writeText(address)
