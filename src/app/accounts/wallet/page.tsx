@@ -211,7 +211,7 @@ export default function WalletPage() {
 
       <PortfolioHeader 
         totalValue={totalBalance} 
-        isLoading={isLoading}
+        isLoading={loading}
       />
 
       <PrimaryActions
