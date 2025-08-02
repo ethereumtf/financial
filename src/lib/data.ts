@@ -1,7 +1,7 @@
 // Stablecoin-focused data models for USD Financial
 
-export type StablecoinSymbol = 'USDC' | 'USDT';
-export type ChainId = 1 | 137 | 42161 | 10 | 56; // Ethereum, Polygon, Arbitrum, Optimism, BSC
+export type StablecoinSymbol = 'USDC' | 'USDT' | 'DAI' | 'FRAX' | 'TUSD' | 'BUSD';
+export type ChainId = 1 | 137 | 42161 | 10 | 56 | 11155111; // Ethereum, Polygon, Arbitrum, Optimism, BSC, Sepolia
 
 export interface StablecoinBalance {
   symbol: StablecoinSymbol;
@@ -433,7 +433,8 @@ export function getChainName(chainId: ChainId): string {
     137: 'Polygon',
     42161: 'Arbitrum',
     10: 'Optimism',
-    56: 'BSC'
+    56: 'BSC',
+    11155111: 'Sepolia Testnet'
   };
   return chainNames[chainId] || 'Unknown';
 }
