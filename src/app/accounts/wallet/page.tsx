@@ -109,6 +109,20 @@ export default function WalletPage() {
   
   // Debug: Log networks being passed to modal
   console.log('🔍 Debug - Networks array:', networks)
+  
+  // Manual refresh function for testing
+  const refreshBalances = async () => {
+    console.log('🔄 Manually refreshing balances...')
+    if (typeof window !== 'undefined' && (window as any).checkUsdcBalance) {
+      const balance = await (window as any).checkUsdcBalance('0x98cDb60Dff9D36340caed6081AD237CD949c8552')
+      console.log('🔄 Manual refresh result:', balance)
+    }
+  }
+  
+  // Expose refresh function globally for debugging
+  if (typeof window !== 'undefined') {
+    (window as any).refreshBalances = refreshBalances
+  }
 
 
   const totalBalance = realAssets.reduce((sum, asset) => sum + asset.usdValue, 0)

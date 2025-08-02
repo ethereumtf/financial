@@ -218,7 +218,9 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         console.log('🔍 Web3Auth provider available, getting addresses...')
         eoaAddr = await getEOAAddress(web3authInstance.provider)
         eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
+        console.log('🔍 About to fetch USDC balance...')
         eoaUsdcBal = await getTokenBalance(web3authInstance.provider, eoaAddr, USDC_SEPOLIA, 6)
+        console.log('🔍 USDC balance fetch completed')
         
         console.log('🔍 Addresses and balances calculated:')
         console.log('  EOA Address:', eoaAddr)
@@ -327,24 +329,57 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
   }
 
   const getTokenBalance = async (provider: IProvider, address: string | null, tokenContract: string, decimals: number = 6): Promise<string> => {
-    if (!address) return '0'
+    if (!address) {
+      console.log('🔍 getTokenBalance: No address provided')
+      return '0'
+    }
     
     try {
+      console.log(`🔍 Getting token balance for address: ${address}`)
+      console.log(`🔍 Token contract: ${tokenContract}`)
+      console.log(`🔍 Decimals: ${decimals}`)
+      
       const { ethers } = await import('ethers')
       const ethersProvider = new ethers.BrowserProvider(provider)
       
+      // Check network
+      const network = await ethersProvider.getNetwork()
+      console.log(`🔍 Connected to network: ${network.name} (chainId: ${network.chainId})`)
+      
       // ERC-20 ABI for balanceOf function
       const erc20Abi = [
-        "function balanceOf(address owner) view returns (uint256)"
+        "function balanceOf(address owner) view returns (uint256)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint8)"
       ]
       
       const contract = new ethers.Contract(tokenContract, erc20Abi, ethersProvider)
+      
+      // Get token info for verification
+      try {
+        const symbol = await contract.symbol()
+        const tokenDecimals = await contract.decimals()
+        console.log(`🔍 Token symbol: ${symbol}, decimals: ${tokenDecimals}`)
+      } catch (infoError) {
+        console.log('🔍 Could not get token info, proceeding with balance check...')
+      }
+      
       const balance = await contract.balanceOf(address)
+      console.log(`🔍 Raw balance: ${balance.toString()}`)
       
       // Format balance with specified decimals (USDC uses 6 decimals)
-      return ethers.formatUnits(balance, decimals)
+      const formattedBalance = ethers.formatUnits(balance, decimals)
+      console.log(`🔍 Formatted balance: ${formattedBalance}`)
+      
+      return formattedBalance
     } catch (error) {
-      console.error('Get token balance error:', error)
+      console.error('❌ Get token balance error:', error)
+      console.error('❌ Error details:', {
+        address,
+        tokenContract,
+        decimals,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      })
       return '0'
     }
   }
@@ -465,6 +500,29 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       console.error('❌ Chain switch failed:', error)
       throw error
     }
+  }
+
+  // Manual USDC balance check function for debugging
+  const checkUsdcBalance = async (address: string) => {
+    if (!eoaProvider) {
+      console.error('No EOA provider available')
+      return '0'
+    }
+    
+    try {
+      console.log(`🔧 Manual USDC balance check for: ${address}`)
+      const balance = await getTokenBalance(eoaProvider, address, USDC_SEPOLIA, 6)
+      console.log(`🔧 Manual check result: ${balance} USDC`)
+      return balance
+    } catch (error) {
+      console.error('🔧 Manual USDC check failed:', error)
+      return '0'
+    }
+  }
+
+  // Expose manual check function globally for debugging
+  if (typeof window !== 'undefined') {
+    (window as any).checkUsdcBalance = checkUsdcBalance
   }
 
   const value: AccountAbstractionContextType = {
