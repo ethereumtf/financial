@@ -198,20 +198,25 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
       const userInfo = await web3authInstance.getUserInfo()
       
       // Get EOA wallet info
+      let eoaAddr: string | null = null
+      let eoabal: string | null = null
+      let smartAddr: string | null = null
+      let smartBal: string | null = null
+      
       if (web3authInstance.provider) {
-        const eoaAddr = await getEOAAddress(web3authInstance.provider)
-        const eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
+        eoaAddr = await getEOAAddress(web3authInstance.provider)
+        eoabal = await getEOABalance(web3authInstance.provider, eoaAddr)
         
         setEOAAddress(eoaAddr)
         setEOABalance(eoabal)
 
         // Initialize Simple Account Abstraction
         try {
-          const isAAInitialized = await aaService.initialize(eoaAddr)
+          const isAAInitialized = await aaService.initialize(eoaAddr || '')
           
           if (isAAInitialized && aaService.isReady()) {
-            const smartAddr = aaService.getSmartWalletAddress()
-            const smartBal = await aaService.getBalance()
+            smartAddr = aaService.getSmartWalletAddress()
+            smartBal = await aaService.getBalance()
             
             setSmartWalletAddress(smartAddr)
             setSmartWalletBalance(smartBal)
@@ -228,16 +233,16 @@ export function AccountAbstractionProvider({ children }: AccountAbstractionProvi
         }
       }
       
-      // Create unified user object
+      // Create unified user object using the freshly calculated values
       const aaUser: AAUser = {
-        id: userInfo.verifierId || `web3auth_${Date.now()}`,
+        id: (userInfo as any).verifierId || `web3auth_${Date.now()}`,
         email: userInfo.email || '',
         name: userInfo.name || userInfo.email || 'Anonymous User',
         image: userInfo.profileImage,
-        smartWalletAddress: smartWalletAddress,
-        smartWalletBalance: smartWalletBalance,
-        eoaAddress: eoaAddress,
-        eoaBalance: eoaBalance,
+        smartWalletAddress: smartAddr || undefined,
+        smartWalletBalance: smartBal || undefined,
+        eoaAddress: eoaAddr || undefined,
+        eoaBalance: eoabal || undefined,
         accountType: 'personal',
         preferences: {
           currency: 'USDC',

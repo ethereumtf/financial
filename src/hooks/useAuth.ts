@@ -4,7 +4,20 @@ import { useState } from 'react'
 import { useAuthContext } from '@/components/providers/AuthProvider'
 
 export function useAuth() {
-  const { user, loading, signIn, signUp, signInWithGoogle, signOut, isWalletConnected, walletBalance, sendTransaction } = useAuthContext()
+  const { 
+    user, 
+    loading, 
+    signIn, 
+    signUp, 
+    signInWithGoogle, 
+    signOut, 
+    isWalletConnected, 
+    isAAReady,
+    walletBalance, 
+    eoaBalance,
+    sendTransaction,
+    sendGaslessTransaction 
+  } = useAuthContext()
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
 
@@ -56,7 +69,10 @@ export function useAuth() {
     isSignupModalOpen,
     // Additional wallet capabilities
     isWalletConnected,
+    isAAReady,
     walletBalance,
-    sendTransaction
+    eoaBalance,
+    sendTransaction,
+    sendGaslessTransaction
   }
 }
